@@ -3,7 +3,8 @@ from .views import (
     CreateChatSessionView,
     SendMessageView,
     StreamAIResponseView,
-    ask_ai
+    ask_ai,
+    ChatHistoryView
 )
 
 urlpatterns = [
@@ -11,4 +12,5 @@ urlpatterns = [
     path("session/", CreateChatSessionView.as_view()),
     path("message/<int:session_id>/", SendMessageView.as_view()),
     path("stream/<int:session_id>/", StreamAIResponseView.as_view()),
+    path("history/", ChatHistoryView.as_view()),
 ]

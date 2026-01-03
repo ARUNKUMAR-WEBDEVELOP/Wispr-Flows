@@ -1,6 +1,29 @@
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import ChatSession, ChatMessage
+
+# ...existing code...
+
+# New: Chat history view for logged-in users
+class ChatHistoryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        sessions = ChatSession.objects.filter(user=request.user).order_by('-created_at')
+        data = []
+        for session in sessions:
+            messages = session.messages.order_by('created_at').values('role', 'content', 'created_at')
+            data.append({
+                'session_id': session.id,
+                'title': session.title,
+                'created_at': session.created_at,
+                'messages': list(messages)
+            })
+        return Response({'sessions': data})
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from django.http import StreamingHttpResponse
 
@@ -11,6 +34,7 @@ from .streaming import stream_ai_response
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def ask_ai(request):
+    print(f"[Chat Debug] Authorization header: {request.headers.get('Authorization')}")
     """
     Simple endpoint to ask AI a question.
     Expects: { "message": "...", "language": "auto" }
@@ -51,6 +75,7 @@ class CreateChatSessionView(APIView):
         })
 
 
+
 class SendMessageView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -66,6 +91,16 @@ class SendMessageView(APIView):
         )
 
         return Response({"status": "message_saved"})
+
+    def get(self, request, session_id):
+        session = ChatSession.objects.get(id=session_id, user=request.user)
+        messages = session.messages.order_by('created_at').values('role', 'content', 'created_at')
+        return Response({
+            "session_id": session.id,
+            "title": session.title,
+            "created_at": session.created_at,
+            "messages": list(messages)
+        })
 
 
 class StreamAIResponseView(APIView):

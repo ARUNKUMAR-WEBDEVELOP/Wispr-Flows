@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .tts import text_to_speech as tts_convert
 
 
@@ -61,7 +61,7 @@ def text_to_speech(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def transcribe_audio(request):
     """
     REST endpoint for speech-to-text transcription.
