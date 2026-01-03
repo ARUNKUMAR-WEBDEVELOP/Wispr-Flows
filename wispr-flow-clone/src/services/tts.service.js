@@ -3,9 +3,7 @@ const API_BASE = "http://localhost:8000/api";
 export async function textToSpeech(text, language = "en") {
   const token = localStorage.getItem("access_token");
 
-  if (!token) {
-    throw new Error("Not authenticated. Please log in first.");
-  }
+  // Allow guests: don't require token
 
   // Validate text
   if (!text || text.trim().length === 0) {

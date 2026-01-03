@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 
-export default function ChatWindow({ messages, isTyping }) {
+export default function ChatWindow({ messages, isTyping, liveTranscript }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -14,6 +14,11 @@ export default function ChatWindow({ messages, isTyping }) {
       {messages.map((msg, index) => (
         <MessageBubble key={index} message={msg} />
       ))}
+
+      {/* Show live transcript as a temporary message */}
+      {liveTranscript && (
+        <MessageBubble message={{ text: liveTranscript, from: "user", temp: true }} />
+      )}
 
       {isTyping && <TypingIndicator />}
 

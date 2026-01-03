@@ -2,20 +2,18 @@ const API_BASE = "http://localhost:8000/api";
 
 export async function speechToText(audioBlob) {
   const token = localStorage.getItem("access_token");
-
-  if (!token) {
-    throw new Error("Not authenticated. Please log in first.");
-  }
-
   const formData = new FormData();
   formData.append("audio", audioBlob, "audio.wav");
+
+  const headers = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
 
   try {
     const res = await fetch(`${API_BASE}/speech/transcribe/`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
       body: formData,
     });
 

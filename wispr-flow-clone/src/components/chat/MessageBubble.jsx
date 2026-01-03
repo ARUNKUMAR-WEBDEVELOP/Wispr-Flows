@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import MessageActions from "./MessageActions";
 
 export default function MessageBubble({ message }) {
-  const { role, content, streaming } = message;
+  const { role, content, streaming, language } = message;
   const isUser = role === "user";
 
   const [displayText, setDisplayText] = useState(
@@ -36,8 +36,9 @@ export default function MessageBubble({ message }) {
       >
         <div className="whitespace-pre-wrap">{displayText}</div>
 
+        {/* Show TTS controls only for AI responses after streaming finishes */}
         {!isUser && !streaming && (
-          <MessageActions text={content} />
+          <MessageActions text={content} language={language} />
         )}
       </div>
     </div>

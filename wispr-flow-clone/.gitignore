@@ -25,4 +25,4 @@ dist-ssr
 
 
 # deepgram api key
-export const DEEPGRAM_API_KEY = "9f22a263d2e93df06dc9663c1a09fda87e44a8e3";
+.env
