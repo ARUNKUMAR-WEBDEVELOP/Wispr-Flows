@@ -14,7 +14,9 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = "dev-secret-key-change-in-prod"
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = [
+    "wispr-flows-3adt.onrender.com",
+    ".onrender.com","localhost", "127.0.0.1"]
 
 # --------------------
 # INSTALLED APPS
