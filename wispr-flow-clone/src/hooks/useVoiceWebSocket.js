@@ -5,7 +5,7 @@ export function useVoiceWebSocket(onTranscript) {
   const [connected, setConnected] = useState(false);
 
   const connect = () => {
-    wsRef.current = new WebSocket("ws://localhost:8000/ws/speech/");
+    wsRef.current = new WebSocket("wss://wispr-flows-3adt.onrender.com/ws/speech/");
     wsRef.current.binaryType = "arraybuffer";
     wsRef.current.onopen = () => setConnected(true);
     wsRef.current.onclose = () => setConnected(false);

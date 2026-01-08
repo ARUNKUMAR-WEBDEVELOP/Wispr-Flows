@@ -1,4 +1,4 @@
-import Sidebar from "./SideBar";
+import Sidebar from "./Sidebar";
 import Header from "./Header";
 
 export default function AppShell({ children }) {

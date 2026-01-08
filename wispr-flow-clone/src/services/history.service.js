@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE = "http://localhost:8000/api";
+const API_BASE = "https://wispr-flows-3adt.onrender.com/api";
 
 function getAuthHeaders() {
   const token = localStorage.getItem("access_token");

@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000/api";
+const API_BASE = "https://wispr-flows-3adt.onrender.com/api";
 
 export function isAuthenticated() {
   return !!localStorage.getItem("access_token");

@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000/api";
+const API_BASE = "https://wispr-flows-3adt.onrender.com/api";
 
 export async function sendMessageToAI(message, language = "auto") {
   const token = localStorage.getItem("access_token");
