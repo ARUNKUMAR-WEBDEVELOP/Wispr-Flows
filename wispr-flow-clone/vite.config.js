@@ -10,6 +10,8 @@ export default defineConfig(async () => ({
     tailwindcss(), // ✅ THIS LINE IS THE FIX
   ],
 
+  base: "/Wispr-Flows/",
+  
   clearScreen: false,
 
   server: {
