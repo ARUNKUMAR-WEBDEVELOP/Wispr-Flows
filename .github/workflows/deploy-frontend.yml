@@ -47,6 +47,11 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          VITE_DEEPGRAM_KEY: ${{ secrets.VITE_DEEPGRAM_KEY }}
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_GOOGLE_CLIENT_SECRET: ${{ secrets.VITE_GOOGLE_CLIENT_SECRET }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

@@ -3,7 +3,7 @@ import { FcGoogle } from "react-icons/fc";
 import Button from "../UI/Button";
 import { googleLogin } from "../../services/auth.service";
 
-const GOOGLE_CLIENT_ID = "931297781110-pesce8f6hg2gdadrer9eef0vouj81sud.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "987489441994-teokvsru5bvq88tut2j18fidjohikub5.apps.googleusercontent.com";
 
 export default function GoogleLoginButton({ onSuccess }) {
   const [loading, setLoading] = useState(false);
