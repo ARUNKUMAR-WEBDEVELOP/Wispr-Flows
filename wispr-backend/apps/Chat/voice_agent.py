@@ -1,222 +1,78 @@
-"""
-Real-time Voice Agent with LLM streaming support.
-Handles continuous speech-to-text-to-LLM pipeline.
-"""
-
-import json
-import asyncio
-from django.conf import settings
-from channels.db import database_sync_to_async
 import google.generativeai as genai
-from .models import ChatSession, Message
+from django.conf import settings
 
 
-class VoiceAgent:
-    def __init__(self, user, session_id):
-        self.user = user
-        self.session_id = session_id
-        self.conversation_history = []
-        self.llm_buffer = ""
-        self.is_first_exchange = True
-        
-    @database_sync_to_async
-    def load_session(self):
-        """Load existing session or create new one"""
-        try:
-            session = ChatSession.objects.get(
-                id=self.session_id,
-                user=self.user
-            )
-            # Load message history
-            messages = Message.objects.filter(session=session).order_by('created_at')
-            self.conversation_history = [
-                {
-                    "role": "user" if m.role == "user" else "assistant",
-                    "content": m.content
-                }
-                for m in messages
-            ]
-            self.is_first_exchange = len(messages) == 0
-            return session
-        except ChatSession.DoesNotExist:
-            return None
+# System prompt for voice agent role
+VOICE_AGENT_SYSTEM_PROMPT = """You are a general-purpose virtual assistant speaking to users over the phone. Your task is to help them find accurate, helpful information across a wide range of everyday topics.
 
-    async def process_transcript(self, transcript, send_response):
-        """
-        Process user transcript and stream LLM response.
-        
-        Args:
-            transcript: User's spoken text
-            send_response: Async callback to send response chunks
-        """
-        # Save user message
-        await self.save_message("user", transcript)
-        self.conversation_history.append({
-            "role": "user",
-            "content": transcript
-        })
-        
-        # Stream LLM response
-        full_response = ""
-        
-        try:
-            # Try OpenAI GPT-4 first (GPT-5.2 not yet available publicly)
-            print(f"[VoiceAgent] Trying OpenAI...")
-            response_stream = self.stream_openai_response(transcript)
-            async for chunk in response_stream:
-                full_response += chunk
-                self.llm_buffer += chunk
-                await send_response({
-                    "type": "llm_chunk",
-                    "text": chunk,
-                    "is_final": False
-                })
-        except Exception as e:
-            print(f"[VoiceAgent] OpenAI failed: {e}, trying Gemini...")
-            # Fallback to Gemini
-            try:
-                response_stream = self.stream_gemini_response(transcript)
-                async for chunk in response_stream:
-                    full_response += chunk
-                    self.llm_buffer += chunk
-                    await send_response({
-                        "type": "llm_chunk",
-                        "text": chunk,
-                        "is_final": False
-                    })
-            except Exception as e2:
-                print(f"[VoiceAgent] Gemini also failed: {e2}")
-                error_msg = "Could not generate response. Please try again."
-                await send_response({
-                    "type": "llm_chunk",
-                    "text": error_msg,
-                    "is_final": True
-                })
-                full_response = error_msg
-        
-        # Save assistant response
-        await self.save_message("assistant", full_response)
-        self.conversation_history.append({
-            "role": "assistant",
-            "content": full_response
-        })
-        
-        # Generate title if first exchange
-        if self.is_first_exchange and full_response:
-            await self.generate_and_save_title(transcript)
-            self.is_first_exchange = False
-        
-        # Signal completion
-        await send_response({
-            "type": "llm_chunk",
-            "text": "",
-            "is_final": True
-        })
-        
-        self.llm_buffer = ""
+General Guidelines:
+- Be warm, friendly, and professional.
+- Speak clearly and naturally in plain language.
+- Keep most responses to 1–2 sentences and under 120 characters unless the caller asks for more detail (max: 300 characters).
+- Do not use markdown formatting, like code blocks, quotes, bold, links, or italics.
+- Use line breaks in lists only when necessary.
+- Use varied phrasing; avoid repetition.
+- If unclear, ask for clarification.
+- If the user's message is empty, respond with an empty message.
+- If asked about your well-being, respond briefly and kindly.
 
-    async def stream_openai_response(self, user_message):
-        """Stream response from OpenAI GPT-4"""
-        try:
-            import openai
-        except ImportError:
-            raise ValueError("openai package not installed")
-        
-        api_key = getattr(settings, "OPENAI_API_KEY", None)
-        if not api_key:
-            raise ValueError("OPENAI_API_KEY not configured")
-        
-        client = openai.OpenAI(api_key=api_key)
-        
-        # Format conversation for OpenAI
-        messages = [
-            {"role": "system", "content": "You are a helpful voice assistant. Keep responses concise and conversational."}
-        ]
-        messages.extend(self.conversation_history)
-        
-        # Stream response
-        with client.chat.completions.create(
-            model="gpt-4-turbo-preview",
-            messages=messages,
-            stream=True,
-            temperature=0.7,
-            max_tokens=500
-        ) as response:
-            for chunk in response:
-                if chunk.choices[0].delta.content:
-                    yield chunk.choices[0].delta.content
+Voice-Specific Instructions:
+- Speak in a conversational tone—your responses will be spoken aloud.
+- Pause after questions to allow for replies.
+- Confirm what the customer said if uncertain.
+- Never interrupt.
 
-    async def stream_gemini_response(self, user_message):
-        """Stream response from Google Gemini"""
-        api_key = getattr(settings, "GEMINI_API_KEY", None)
-        if not api_key:
-            raise ValueError("GEMINI_API_KEY not configured")
-        
-        genai.configure(api_key=api_key)
-        
-        # Create message history for Gemini
-        system_instruction = "You are a helpful voice assistant. Keep responses concise and conversational."
-        
+Style:
+- Use active listening cues.
+- Be warm and understanding, but concise.
+- Use simple words unless the caller uses technical terms.
+
+Call Flow Objective:
+- Greet the caller and introduce yourself: "Hi there, I'm your virtual assistant—how can I help today?"
+- Your primary goal is to help users quickly find the information they're looking for. This may include:
+  - Quick facts: "The capital of Japan is Tokyo."
+  - Weather: "It's currently 68 degrees and cloudy in Seattle."
+  - Local info: "There's a pharmacy nearby open until 9 PM."
+  - Basic how-to guidance: "To restart your phone, hold the power button for 5 seconds."
+  - FAQs: "Most returns are accepted within 30 days with a receipt."
+  - Navigation help: "Can you tell me the address or place you're trying to reach?"
+- If the request is unclear: "Just to confirm, did you mean…?" or "Can you tell me a bit more?"
+- If the request is out of scope (e.g legal, financial, or medical advice): "I'm not able to provide advice on that, but I can help you find someone who can."
+
+Off-Scope Questions:
+- If asked about sensitive topics like health, legal, or financial matters: "I'm not qualified to answer that, but I recommend reaching out to a licensed professional."
+
+User Considerations:
+- Callers may be in a rush, distracted, or unsure how to phrase their question. Stay calm, helpful, and clear—especially when the user seems stressed, confused, or overwhelmed.
+
+Closing:
+- Always ask: "Is there anything else I can help you with today?"
+- Then thank them warmly and say: "Thanks for calling. Take care and have a great day!\""""
+
+
+def stream_voice_agent_response(user_message: str):
+    """
+    Stream voice agent response using Google Gemini API with voice agent role.
+    Keeps responses short and natural for voice output.
+    """
+    try:
+        genai.configure(api_key=settings.GEMINI_API_KEY)
+
+        # Use gemini-flash for faster responses in voice agent context
         model = genai.GenerativeModel(
-            model_name="gemini-pro",
-            system_instruction=system_instruction
+            "gemini-flash-lite-latest",
+            system_instruction=VOICE_AGENT_SYSTEM_PROMPT
         )
-        
-        # Build request with recent context
-        recent_messages = self.conversation_history[-4:] if self.conversation_history else []
-        
-        # Format for Gemini
-        contents = []
-        for msg in recent_messages:
-            contents.append({
-                "role": "user" if msg["role"] == "user" else "model",
-                "parts": [msg["content"]]
-            })
-        
-        # Stream response
+
+        # Generate content with streaming
         response = model.generate_content(
-            contents,
-            stream=True,
-            generation_config=genai.types.GenerationConfig(
-                max_output_tokens=500,
-                temperature=0.7,
-            )
+            user_message,
+            stream=True
         )
-        
+
         for chunk in response:
             if chunk.text:
                 yield chunk.text
 
-    @database_sync_to_async
-    def save_message(self, role, content):
-        """Save message to database"""
-        try:
-            session = ChatSession.objects.get(id=self.session_id, user=self.user)
-            Message.objects.create(
-                session=session,
-                role=role,
-                content=content
-            )
-        except ChatSession.DoesNotExist:
-            print(f"[VoiceAgent] Session {self.session_id} not found")
-
-    async def generate_and_save_title(self, first_user_message):
-        """Generate title from first user message and save to session"""
-        # Simple title generation from first message
-        words = first_user_message.split()[:5]
-        title = " ".join(words) + ("..." if len(first_user_message.split()) > 5 else "")
-        
-        if len(title) > 100:
-            title = title[:97] + "..."
-        
-        await self._update_session_title(title)
-
-    @database_sync_to_async
-    def _update_session_title(self, title):
-        """Update session title in DB"""
-        try:
-            session = ChatSession.objects.get(id=self.session_id, user=self.user)
-            session.title = title
-            session.save()
-        except ChatSession.DoesNotExist:
-            pass
+    except Exception as e:
+        yield f"I encountered an error. Please try again."

@@ -1,38 +1,15 @@
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import api_view, permission_classes
-from django.http import StreamingHttpResponse, JsonResponse
-import json
-import asyncio
-from asgiref.sync import sync_to_async, async_to_sync
+from rest_framework.response import Response
+from .models import ChatSession, ChatMessage
 
-from .models import ChatSession, ChatMessage, Message
-from .voice_agent import VoiceAgent
+# ...existing code...
 
+# New: Chat history view for logged-in users
+class ChatHistoryView(APIView):
+    permission_classes = [IsAuthenticated]
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def create_chat_session(request):
-    """Create a new chat session for the user"""
-    try:
-        session = ChatSession.objects.create(
-            user=request.user,
-            title="New Conversation"
-        )
-        return Response({
-            "session_id": session.id,
-            "created_at": session.created_at
-        })
-    except Exception as e:
-        return Response({"error": str(e)}, status=500)
-
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_chat_history(request):
-    """Get all chat sessions and messages for the user"""
-    try:
+    def get(self, request):
         sessions = ChatSession.objects.filter(user=request.user).order_by('-created_at')
         data = []
         for session in sessions:
@@ -40,109 +17,149 @@ def get_chat_history(request):
             data.append({
                 'session_id': session.id,
                 'title': session.title,
-                'created_at': session.created_at.isoformat(),
-                'message_count': session.messages.count(),
+                'created_at': session.created_at,
                 'messages': list(messages)
             })
         return Response({'sessions': data})
-    except Exception as e:
-        return Response({"error": str(e)}, status=500)
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.decorators import api_view, permission_classes
+from django.http import StreamingHttpResponse
 
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_session_messages(request, session_id):
-    """Get all messages in a specific session"""
-    try:
-        session = ChatSession.objects.get(id=session_id, user=request.user)
-        messages = session.messages.order_by('created_at').values('role', 'content', 'created_at')
-        return Response({
-            'session_id': session.id,
-            'title': session.title,
-            'created_at': session.created_at.isoformat(),
-            'messages': list(messages)
-        })
-    except ChatSession.DoesNotExist:
-        return Response({"error": "Session not found"}, status=404)
-    except Exception as e:
-        return Response({"error": str(e)}, status=500)
+from .models import ChatSession, ChatMessage
+from .streaming import stream_ai_response
+from .voice_agent import stream_voice_agent_response
 
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def process_voice_transcript(request, session_id):
+def ask_ai(request):
+    print(f"[Chat Debug] Authorization header: {request.headers.get('Authorization')}")
     """
-    Process user transcript and stream LLM response.
-    
-    Expects: { "transcript": "...", "is_final": true }
-    Returns: Server-sent events with LLM response chunks
+    Simple endpoint to ask AI a question.
+    Expects: { "message": "...", "language": "auto" }
     """
     try:
-        transcript = request.data.get("transcript", "").strip()
-        is_final = request.data.get("is_final", True)
+        message = request.data.get("message")
+        language = request.data.get("language", "auto")
         
-        if not transcript or not is_final:
-            return JsonResponse({"error": "Only final transcripts are processed"}, status=400)
+        if not message:
+            return Response(
+                {"error": "Message is required"},
+                status=400
+            )
         
-        # Get or create session
+        # Stream AI response
+        response_text = ""
+        for chunk in stream_ai_response(message):
+            response_text += chunk
+        
+        return Response({
+            "text": response_text,
+            "language": language
+        })
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=500
+        )
+
+
+class CreateChatSessionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        session = ChatSession.objects.create(user=request.user)
+        return Response({
+            "session_id": session.id
+        })
+
+
+
+class SendMessageView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, session_id):
+        content = request.data.get("message")
+
         session = ChatSession.objects.get(id=session_id, user=request.user)
-        
-        # Initialize voice agent
-        agent = VoiceAgent(request.user, session_id)
-        
-        # Load session history synchronously
-        try:
-            agent.load_session()
-        except:
-            pass
-        
-        def event_generator():
-            # Run async code in sync context
-            async def process():
-                async def send_chunk(chunk_data):
-                    yield f"data: {json.dumps(chunk_data)}\n\n"
-                
-                # Process transcript and stream response
-                async_gen = send_chunk  # Placeholder
-                
-                response_chunks = []
-                
-                async def collect_response(chunk_data):
-                    response_chunks.append(f"data: {json.dumps(chunk_data)}\n\n")
-                
-                await agent.process_transcript(transcript, collect_response)
-                return response_chunks
-            
-            # Get event loop and run async code
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                chunks = loop.run_until_complete(process())
-                for chunk in chunks:
-                    yield chunk
-            finally:
-                loop.close()
-        
+
+        ChatMessage.objects.create(
+            session=session,
+            role="user",
+            content=content
+        )
+
+        return Response({"status": "message_saved"})
+
+    def get(self, request, session_id):
+        session = ChatSession.objects.get(id=session_id, user=request.user)
+        messages = session.messages.order_by('created_at').values('role', 'content', 'created_at')
+        return Response({
+            "session_id": session.id,
+            "title": session.title,
+            "created_at": session.created_at,
+            "messages": list(messages)
+        })
+
+
+class StreamAIResponseView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, session_id):
+        session = ChatSession.objects.get(id=session_id, user=request.user)
+
+        last_user_msg = session.messages.filter(
+            role="user"
+        ).last()
+
+        def event_stream():
+            full_text = ""
+
+            for chunk in stream_ai_response(last_user_msg.content):
+                full_text += chunk
+                yield f"data: {chunk}\n\n"
+
+            ChatMessage.objects.create(
+                session=session,
+                role="assistant",
+                content=full_text
+            )
+
         return StreamingHttpResponse(
-            event_generator(),
+            event_stream(),
             content_type="text/event-stream"
         )
-    
-    except ChatSession.DoesNotExist:
-        return JsonResponse({"error": "Session not found"}, status=404)
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
 
-
-@api_view(["DELETE"])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def delete_session(request, session_id):
-    """Delete a chat session"""
+def voice_agent_response(request):
+    """
+    Live voice agent endpoint.
+    Takes transcribed user message and returns AI voice agent response.
+    Expects: { "message": "..." }
+    """
     try:
-        session = ChatSession.objects.get(id=session_id, user=request.user)
-        session.delete()
-        return Response({"status": "deleted"})
-    except ChatSession.DoesNotExist:
-        return Response({"error": "Session not found"}, status=404)
+        message = request.data.get("message")
+        
+        if not message:
+            return Response(
+                {"error": "Message is required"},
+                status=400
+            )
+        
+        # Stream voice agent response with role
+        response_text = ""
+        for chunk in stream_voice_agent_response(message):
+            response_text += chunk
+        
+        return Response({
+            "text": response_text,
+            "agent_type": "voice_agent"
+        })
     except Exception as e:
-        return Response({"error": str(e)}, status=500)
+        return Response(
+            {"error": str(e)},
+            status=500
+        )

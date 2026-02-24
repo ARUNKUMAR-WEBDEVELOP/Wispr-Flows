@@ -28,13 +28,3 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"{self.role}: {self.content[:30]}"
-
-    class Meta:
-        ordering = ['created_at']
-        indexes = [
-            models.Index(fields=['session', 'created_at']),
-        ]
-
-
-# Alias for easier imports
-Message = ChatMessage
