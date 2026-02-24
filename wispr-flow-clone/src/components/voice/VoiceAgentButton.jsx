@@ -1,15 +1,54 @@
 import { useState, useRef } from "react";
-import { MessageCircle, Loader, Mic } from "lucide-react";
+import { MessageCircle, Loader, Mic, X, Send } from "lucide-react";
 import { getVoiceAgentResponse } from "../../services/voice-agent.service";
 import { textToSpeech } from "../../services/tts.service";
 import { useVoiceWebSocket } from "../../hooks/useVoiceWebSocket";
+
+// Waveform animation component
+function VoiceWaveform() {
+  return (
+    <div className="flex items-center justify-center gap-1 h-8">
+      {[...Array(4)].map((_, i) => (
+        <div
+          key={i}
+          className="w-1 bg-purple-500 rounded-full"
+          style={{
+            height: Math.random() * 24 + 8 + "px",
+            animation: `wave 600ms ease-in-out infinite`,
+            animationDelay: i * 100 + "ms"
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Typing indicator
+function TypingIndicator() {
+  return (
+    <div className="flex gap-1">
+      {[...Array(3)].map((_, i) => (
+        <div
+          key={i}
+          className="w-2 h-2 bg-gray-400 rounded-full"
+          style={{
+            animation: `bounce 1.4s infinite`,
+            animationDelay: i * 0.2 + "s"
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export default function VoiceAgentButton({ onResponseReceived }) {
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [agentResponse, setAgentResponse] = useState("");
+  const [displayedResponse, setDisplayedResponse] = useState("");
   const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
   const audioRef = useRef(null);
   const finalTranscriptRef = useRef("");
   const interimTranscriptRef = useRef("");
@@ -55,6 +94,23 @@ export default function VoiceAgentButton({ onResponseReceived }) {
     setTranscript(combined);
   });
 
+  // Typewriter effect for response
+  const typeResponse = (text, speed = 30) => {
+    let index = 0;
+    setDisplayedResponse("");
+    
+    const interval = setInterval(() => {
+      if (index < text.length) {
+        setDisplayedResponse(text.slice(0, index + 1));
+        index++;
+      } else {
+        clearInterval(interval);
+      }
+    }, speed);
+    
+    return () => clearInterval(interval);
+  };
+
   const handleSendToAgent = async (text) => {
     if (!text || text.trim().length === 0) return;
 
@@ -68,6 +124,9 @@ export default function VoiceAgentButton({ onResponseReceived }) {
       console.log("[Voice Agent] Received response:", response.text);
       
       setAgentResponse(response.text);
+      
+      // Add typewriter effect
+      typeResponse(response.text);
       
       // Convert response to speech
       const audioUrl = await textToSpeech(response.text, "en");
@@ -95,9 +154,11 @@ export default function VoiceAgentButton({ onResponseReceived }) {
 
   const handleStartLiveAgent = async () => {
     try {
+      setShowModal(true);
       setIsListening(true);
       setTranscript("");
       setAgentResponse("");
+      setDisplayedResponse("");
       setError("");
       finalTranscriptRef.current = "";
       interimTranscriptRef.current = "";
@@ -183,6 +244,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
       console.error("[Voice Agent] Error starting:", error);
       setError(error.message);
       setIsListening(false);
+      setShowModal(false);
       handleStopLiveAgent();
     }
   };
@@ -222,57 +284,138 @@ export default function VoiceAgentButton({ onResponseReceived }) {
     }
   };
 
+  const closeModal = () => {
+    setShowModal(false);
+    handleStopLiveAgent();
+  };
+
   return (
-    <div className="voice-agent-container flex flex-col gap-2">
+    <>
+      <style>{`
+        @keyframes wave {
+          0%, 60%, 100% { transform: translateY(0); }
+          30% { transform: translateY(-10px); }
+        }
+        @keyframes bounce {
+          0%, 60%, 100% { opacity: 0.3; }
+          30% { opacity: 1; }
+        }
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .message-animate {
+          animation: slideIn 0.3s ease-out;
+        }
+      `}</style>
+
       <button
-        onClick={isListening ? handleStopLiveAgent : handleStartLiveAgent}
-        disabled={isProcessing}
+        onClick={handleStartLiveAgent}
+        disabled={isListening}
         className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all flex-1 sm:flex-none ${
           isListening
-            ? "bg-red-600 text-white hover:bg-red-700"
-            : isProcessing
-            ? "bg-gray-400 text-white cursor-not-allowed"
+            ? "bg-purple-600 text-white"
             : "bg-purple-600 text-white hover:bg-purple-700"
         }`}
         title="Start live voice agent conversation"
       >
-        {isProcessing ? (
-          <>
-            <Loader className="w-5 h-5 animate-spin" />
-            <span className="hidden sm:inline">Processing...</span>
-          </>
-        ) : isListening ? (
-          <>
-            <Mic className="w-5 h-5 animate-pulse" />
-            <span className="hidden sm:inline">Stop Agent</span>
-          </>
-        ) : (
-          <>
-            <MessageCircle className="w-5 h-5" />
-            <span className="hidden sm:inline">Voice Agent</span>
-          </>
-        )}
+        <MessageCircle className="w-5 h-5" />
+        <span className="hidden sm:inline">Voice Agent</span>
       </button>
-      
-      {transcript && (
-        <div className="text-xs sm:text-sm p-2 bg-purple-900 rounded text-purple-100">
-          <p className="font-semibold">You: {transcript}</p>
+
+      {/* Gemini-style Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-xl max-h-[80vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Voice Agent</h2>
+              <button
+                onClick={closeModal}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
+              >
+                <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              </button>
+            </div>
+
+            {/* Conversation */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* User message with waveform */}
+              {(isListening || transcript) && (
+                <div className="message-animate flex justify-end">
+                  <div className="max-w-xs">
+                    {isListening && !transcript && (
+                      <div className="bg-purple-600 text-white p-4 rounded-2xl rounded-tr-none">
+                        <p className="text-sm font-medium mb-2">Listening...</p>
+                        <VoiceWaveform />
+                      </div>
+                    )}
+                    {transcript && (
+                      <div className="bg-purple-600 text-white p-4 rounded-2xl rounded-tr-none">
+                        <p className="text-sm">{transcript}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Agent processing */}
+              {isProcessing && !agentResponse && (
+                <div className="message-animate flex justify-start">
+                  <div className="bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white p-4 rounded-2xl rounded-tl-none flex items-center gap-2">
+                    <TypingIndicator />
+                  </div>
+                </div>
+              )}
+
+              {/* Agent response */}
+              {displayedResponse && (
+                <div className="message-animate flex justify-start">
+                  <div className="bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white p-4 rounded-2xl rounded-tl-none max-w-xs">
+                    <p className="text-sm">{displayedResponse}</p>
+                    {displayedResponse !== agentResponse && (
+                      <span className="inline-block w-2 h-4 ml-1 bg-gray-500 animate-pulse" />
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Error message */}
+              {error && (
+                <div className="message-animate flex justify-start">
+                  <div className="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 p-4 rounded-2xl rounded-tl-none">
+                    <p className="text-sm">⚠️ {error}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer with controls */}
+            <div className="border-t border-gray-200 dark:border-gray-700 p-4 flex gap-2">
+              {isListening ? (
+                <button
+                  onClick={handleStopLiveAgent}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
+                >
+                  <Mic className="w-4 h-4" />
+                  <span>Stop Listening</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleStartLiveAgent}
+                  disabled={isProcessing}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition disabled:opacity-50"
+                >
+                  <Mic className="w-4 h-4" />
+                  <span>Start Listening</span>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
-      
-      {agentResponse && (
-        <div className="text-xs sm:text-sm p-2 bg-purple-800 rounded text-purple-50">
-          <p className="font-semibold">Agent: {agentResponse}</p>
-        </div>
-      )}
-      
-      {error && (
-        <div className="text-xs sm:text-sm p-2 bg-red-900 rounded text-red-100">
-          Error: {error}
-        </div>
-      )}
-      
+
       <audio ref={audioRef} />
-    </div>
+    </>
   );
 }
