@@ -24,8 +24,17 @@ export async function getVoiceAgentResponse(message) {
     });
 
     if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.error || "Voice agent request failed");
+      let errorMessage = "Voice agent request failed";
+      try {
+        const error = await res.json();
+        errorMessage = error.error || errorMessage;
+      } catch (parseError) {
+        const text = await res.text();
+        if (text) {
+          errorMessage = text;
+        }
+      }
+      throw new Error(errorMessage);
     }
 
     return await res.json();
