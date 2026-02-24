@@ -8,6 +8,7 @@ import ChatWindow from "./components/chat/ChatWindow";
 import GoogleLoginButton from "./components/Auth/GoogleLoginButton";
 import { fetchChatHistory, createChatSession, fetchSessionMessages } from "./services/history.service";
 import { sendMessageToAI } from "./services/ai.service";
+import { textToSpeech } from "./services/tts.service";
 import { logout } from "./services/auth.service";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -57,16 +58,22 @@ export default function App() {
       let mediaRecorder;
       let mimeType = 'audio/webm;codecs=opus';
       
-      if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
-        mimeType = 'audio/ogg;codecs=opus';
-      } else if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+      // Note: Deepgram SDK expects linear16 (PCM), but we'll send what the browser supports
+      // and let the backend handle conversion if needed
+      if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
         mimeType = 'audio/webm;codecs=opus';
+      } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+        mimeType = 'audio/ogg;codecs=opus';
       } else if (MediaRecorder.isTypeSupported('audio/webm')) {
         mimeType = 'audio/webm';
+      } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+        mimeType = 'audio/mp4';
+      } else {
+        mimeType = undefined; // Use default
       }
       
       console.log(`[Voice] Using mime type: ${mimeType}`);
-      mediaRecorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
       
       mediaRecorder.onerror = (event) => {
         console.error("[Voice] MediaRecorder error:", event.error);
@@ -130,7 +137,14 @@ export default function App() {
       // Wait for final transcript
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      setInputText(liveTranscript);
+      // Auto-process voice transcript through LLM and TTS
+      if (liveTranscript && liveTranscript.trim().length > 0) {
+        console.log("[Voice] Auto-processing transcript through LLM...");
+        await handleVoiceToVoiceMessage(liveTranscript);
+      } else {
+        setInputText(liveTranscript);
+      }
+      
       console.log("[Voice] Voice recording complete");
       
     } catch (error) {
@@ -224,6 +238,54 @@ export default function App() {
       });
     } catch (err) {
       console.error(err);
+      alert(`Error: ${err.message}`);
+    }
+
+    setAiStreaming(false);
+  };
+
+  // Handle voice-to-voice conversation (auto-speak LLM response)
+  const handleVoiceToVoiceMessage = async (transcript) => {
+    if (!transcript || transcript.trim().length === 0) return;
+
+    console.log("[Voice] Processing voice transcript:", transcript);
+
+    try {
+      // Add user message
+      setMessages((prev) => {
+        const updated = [...prev, { role: "user", content: transcript, streaming: false }];
+        if (!authenticated) localStorage.setItem("guestChat", JSON.stringify(updated));
+        return updated;
+      });
+
+      setAiStreaming(true);
+
+      // Send to LLM
+      console.log("[Voice] Sending to LLM...");
+      const aiResponse = await sendMessageToAI(transcript);
+      console.log("[Voice] LLM response:", aiResponse.text);
+
+      // Add AI response to messages
+      setMessages((prev) => {
+        const updated = [...prev, { role: "assistant", content: aiResponse.text, streaming: false, language: aiResponse.language }];
+        if (!authenticated) localStorage.setItem("guestChat", JSON.stringify(updated));
+        return updated;
+      });
+
+      // Auto-speak the response via TTS
+      try {
+        console.log("[Voice] Generating speech for response...");
+        const audioUrl = await textToSpeech(aiResponse.text, aiResponse.language || "en");
+        console.log("[Voice] Playing audio response...");
+        const audio = new Audio(audioUrl);
+        audio.play().catch(err => console.error("[Voice] Error playing audio:", err));
+      } catch (ttsErr) {
+        console.error("[Voice] TTS Error:", ttsErr);
+        // Continue without audio playback if TTS fails
+      }
+
+    } catch (err) {
+      console.error("[Voice] Error processing voice message:", err);
       alert(`Error: ${err.message}`);
     }
 
