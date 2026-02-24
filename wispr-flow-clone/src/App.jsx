@@ -37,47 +37,105 @@ export default function App() {
   const streamRef = useRef(null);
 
   const handleStartVoice = async () => {
-    setListening(true);
-    setLiveTranscript("");
-    ws.connect();
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    streamRef.current = stream;
+    try {
+      setListening(true);
+      setLiveTranscript("");
+      console.log("[Voice] Starting voice recording...");
+      
+      // Connect to websocket FIRST
+      ws.connect();
+      
+      // Wait a moment for websocket to connect
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      console.log("[Voice] Getting microphone access...");
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      console.log("[Voice] Microphone access granted");
 
-    // Use MediaRecorder to stream audio chunks to backend
-    let mediaRecorder;
-    if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
-      mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/ogg;codecs=opus' });
-    } else if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-      mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
-    } else {
-      mediaRecorder = new MediaRecorder(stream); // fallback
-    }
-    mediaRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) {
-        e.data.arrayBuffer().then((buffer) => {
-          ws.sendAudio(buffer);
-        });
+      // Use MediaRecorder to stream audio chunks to backend
+      let mediaRecorder;
+      let mimeType = 'audio/webm;codecs=opus';
+      
+      if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+        mimeType = 'audio/ogg;codecs=opus';
+      } else if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+        mimeType = 'audio/webm;codecs=opus';
+      } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+        mimeType = 'audio/webm';
       }
-    };
-    mediaRecorder.start(250); // send every 250ms
-    workletNodeRef.current = mediaRecorder; // reuse ref for cleanup
+      
+      console.log(`[Voice] Using mime type: ${mimeType}`);
+      mediaRecorder = new MediaRecorder(stream, { mimeType });
+      
+      mediaRecorder.onerror = (event) => {
+        console.error("[Voice] MediaRecorder error:", event.error);
+      };
+      
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          console.log(`[Voice] Recording data available: ${e.data.size} bytes`);
+          e.data.arrayBuffer().then((buffer) => {
+            console.log(`[Voice] Sending ${buffer.byteLength} bytes to backend`);
+            ws.sendAudio(buffer);
+          }).catch(err => console.error("[Voice] Error converting to ArrayBuffer:", err));
+        }
+      };
+      
+      mediaRecorder.onstart = () => {
+        console.log("[Voice] MediaRecorder started");
+      };
+      
+      mediaRecorder.onstop = () => {
+        console.log("[Voice] MediaRecorder stopped");
+      };
+      
+      workletNodeRef.current = mediaRecorder;
+      mediaRecorder.start(250); // send every 250ms
+      console.log("[Voice] MediaRecorder started with 250ms interval");
+      
+    } catch (error) {
+      console.error("[Voice] Error starting voice recording:", error);
+      setListening(false);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      ws.disconnect();
+    }
   };
 
   const handleStopVoice = async () => {
-    setListening(false);
-    if (workletNodeRef.current) {
-      // If using MediaRecorder, stop it
-      if (workletNodeRef.current.state === 'recording') {
-        workletNodeRef.current.stop();
+    try {
+      console.log("[Voice] Stopping voice recording...");
+      setListening(false);
+      
+      if (workletNodeRef.current) {
+        if (workletNodeRef.current.state === 'recording') {
+          console.log("[Voice] Stopping MediaRecorder...");
+          workletNodeRef.current.stop();
+        }
+        workletNodeRef.current = null;
       }
-      workletNodeRef.current = null;
+      
+      if (streamRef.current) {
+        console.log("[Voice] Stopping audio stream tracks...");
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      
+      console.log("[Voice] Disconnecting from websocket...");
+      ws.disconnect();
+      
+      // Wait for final transcript
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setInputText(liveTranscript);
+      console.log("[Voice] Voice recording complete");
+      
+    } catch (error) {
+      console.error("[Voice] Error stopping voice recording:", error);
     }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    ws.disconnect();
-    setInputText(liveTranscript);
   };
 
   useEffect(() => {

@@ -93,7 +93,11 @@ async def deepgram_stream(audio_queue, send_transcript):
                 try:
                     audio = await audio_queue.get()
                     if audio is None:
-                        print("[Deepgram Debug] Audio stream ended")
+                        print("[Deepgram Debug] Audio stream ended (None)")
+                        break
+                    # Check if it's the end-of-stream signal (single null byte)
+                    if isinstance(audio, bytes) and len(audio) == 1 and audio[0] == 0:
+                        print("[Deepgram Debug] Received end-of-stream signal")
                         break
                     dg_connection.send(audio)
                     print(f"[Deepgram Debug] Sent {len(audio)} bytes to Deepgram")
