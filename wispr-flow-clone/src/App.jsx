@@ -33,17 +33,36 @@ export default function App() {
   const interimTranscriptRef = useRef("");
 
   const ws = useVoiceWebSocket((data) => {
-    if (!data || !data.text) return;
+    if (!data) return;
 
-    if (data.is_final || data.speech_final) {
-      const prefix = finalTranscriptRef.current.trim();
-      finalTranscriptRef.current = prefix ? `${prefix} ${data.text}` : data.text;
-      interimTranscriptRef.current = "";
-    } else {
-      interimTranscriptRef.current = data.text;
+    const payload = typeof data === "string"
+      ? { text: data, is_final: true, speech_final: true }
+      : data;
+
+    if (!payload.text) return;
+
+    const finalText = finalTranscriptRef.current.trim();
+    let incoming = payload.text.trim();
+
+    // Avoid duplication if Deepgram sends full transcript
+    if (finalText && incoming.startsWith(finalText)) {
+      incoming = incoming.slice(finalText.length).trimStart();
     }
 
-    const combined = `${finalTranscriptRef.current}${interimTranscriptRef.current ? " " + interimTranscriptRef.current : ""}`.trim();
+    if (payload.is_final || payload.speech_final) {
+      if (incoming) {
+        finalTranscriptRef.current = finalText ? `${finalText} ${incoming}` : incoming;
+      }
+      interimTranscriptRef.current = "";
+    } else {
+      interimTranscriptRef.current = incoming;
+    }
+
+    const combined = [
+      finalTranscriptRef.current,
+      interimTranscriptRef.current
+    ].filter(Boolean).join(" ").trim();
+
     setLiveTranscript(combined);
     if (listening) {
       setInputText(combined);
