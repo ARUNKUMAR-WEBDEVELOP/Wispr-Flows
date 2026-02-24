@@ -49,54 +49,66 @@ export default function App() {
       await new Promise(resolve => setTimeout(resolve, 500));
       
       console.log("[Voice] Getting microphone access...");
+      // Don't specify sampleRate in constraints - most browsers ignore it for input
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          autoGainControl: false,
-          sampleRate: 16000
+          autoGainControl: false
         }
       });
       streamRef.current = stream;
       console.log("[Voice] Microphone access granted");
 
-      // Create audio context with explicit sample rate
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)({
-        sampleRate: 16000
-      });
+      // Create audio context at browser's native sample rate
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       audioContextRef.current = audioContext;
       
-      // Resume audio context if suspended (required on some browsers)
+      // Resume audio context if suspended
       if (audioContext.state === 'suspended') {
         await audioContext.resume();
         console.log("[Voice] Audio context resumed");
       }
       
-      const source = audioContext.createMediaStreamSource(stream);
+      const nativeSampleRate = audioContext.sampleRate;
+      const targetSampleRate = 16000;
+      const downsampleFactor = Math.round(nativeSampleRate / targetSampleRate);
       
-      // Create ScriptProcessorNode with matching sample rate
+      console.log(`[Voice] Native sample rate: ${nativeSampleRate}Hz, downsampling to ${targetSampleRate}Hz (factor: ${downsampleFactor})`);
+
+      const source = audioContext.createMediaStreamSource(stream);
       const processor = audioContext.createScriptProcessor(4096, 1, 1);
       
-      console.log(`[Voice] Audio context sample rate: ${audioContext.sampleRate}Hz`);
+      let sampleBuffer = [];
 
       processor.onaudioprocess = (event) => {
         try {
-          // Safely get input data
-          const inputData = event?.inputData?.getChannelData?.(0);
+          // Get input data - this should work now that we're at native sample rate
+          const inputChannelData = event.inputBuffer.getChannelData(0);
           
-          if (!inputData) {
-            console.warn("[Voice] No audio input data available");
+          if (!inputChannelData || inputChannelData.length === 0) {
+            console.warn("[Voice] Empty audio buffer");
             return;
           }
           
-          // Convert float32 to 16-bit PCM
-          const pcm16 = new Int16Array(inputData.length);
-          for (let i = 0; i < inputData.length; i++) {
-            const s = Math.max(-1, Math.min(1, inputData[i]));
+          console.log(`[Voice] Got ${inputChannelData.length} samples`);
+          
+          // Downsample: take every Nth sample
+          const downsampled = new Float32Array(Math.ceil(inputChannelData.length / downsampleFactor));
+          let downsampledIndex = 0;
+          
+          for (let i = 0; i < inputChannelData.length; i += downsampleFactor) {
+            downsampled[downsampledIndex++] = inputChannelData[i];
+          }
+          
+          // Convert float32 to int16 PCM
+          const pcm16 = new Int16Array(downsampledIndex);
+          for (let i = 0; i < downsampledIndex; i++) {
+            const s = Math.max(-1, Math.min(1, downsampled[i]));
             pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
           }
           
-          // Send as uint8 bytes
+          // Send as uint8
           const uint8 = new Uint8Array(pcm16.buffer);
           ws.sendAudio(uint8);
           console.log(`[Voice] Sent ${uint8.byteLength} bytes of 16-bit PCM`);
@@ -110,6 +122,7 @@ export default function App() {
         console.error("[Voice] ScriptProcessorNode error:", event);
       };
 
+      // Proper connection: source -> processor -> destination
       source.connect(processor);
       processor.connect(audioContext.destination);
 
@@ -119,7 +132,7 @@ export default function App() {
         audioContext
       };
       
-      console.log("[Voice] Audio processor initialized");
+      console.log("[Voice] Audio processor initialized and connected");
       
     } catch (error) {
       console.error("[Voice] Error starting voice recording:", error);
@@ -128,7 +141,7 @@ export default function App() {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
       }
-      if (audioContextRef.current) {
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close();
         audioContextRef.current = null;
       }
