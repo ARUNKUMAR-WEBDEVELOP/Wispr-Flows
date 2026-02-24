@@ -8,7 +8,6 @@ import ChatWindow from "./components/chat/ChatWindow";
 import GoogleLoginButton from "./components/Auth/GoogleLoginButton";
 import { fetchChatHistory, createChatSession, fetchSessionMessages } from "./services/history.service";
 import { sendMessageToAI } from "./services/ai.service";
-import { textToSpeech } from "./services/tts.service";
 import { logout } from "./services/auth.service";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -54,52 +53,50 @@ export default function App() {
       streamRef.current = stream;
       console.log("[Voice] Microphone access granted");
 
-      // Use MediaRecorder to stream audio chunks to backend
-      let mediaRecorder;
-      let mimeType = 'audio/webm;codecs=opus';
+      // Use Web Audio API to capture raw PCM audio (not encoded)
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      audioContextRef.current = audioContext;
       
-      // Note: Deepgram SDK expects linear16 (PCM), but we'll send what the browser supports
-      // and let the backend handle conversion if needed
-      if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-        mimeType = 'audio/webm;codecs=opus';
-      } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
-        mimeType = 'audio/ogg;codecs=opus';
-      } else if (MediaRecorder.isTypeSupported('audio/webm')) {
-        mimeType = 'audio/webm';
-      } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
-        mimeType = 'audio/mp4';
-      } else {
-        mimeType = undefined; // Use default
-      }
+      const source = audioContext.createMediaStreamSource(stream);
+      const processor = audioContext.createScriptProcessor(4096, 1, 1);
       
-      console.log(`[Voice] Using mime type: ${mimeType}`);
-      mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
-      
-      mediaRecorder.onerror = (event) => {
-        console.error("[Voice] MediaRecorder error:", event.error);
-      };
-      
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          console.log(`[Voice] Recording data available: ${e.data.size} bytes`);
-          e.data.arrayBuffer().then((buffer) => {
-            console.log(`[Voice] Sending ${buffer.byteLength} bytes to backend`);
-            ws.sendAudio(buffer);
-          }).catch(err => console.error("[Voice] Error converting to ArrayBuffer:", err));
+      const sourceSampleRate = audioContext.sampleRate;
+      const targetSampleRate = 16000; // Deepgram expects 16kHz
+      console.log(`[Voice] Resampling from ${sourceSampleRate}Hz to ${targetSampleRate}Hz`);
+
+      // For downsampling
+      let downsampleFactor = Math.round(sourceSampleRate / targetSampleRate);
+      let downsampleBuffer = [];
+
+      processor.onaudioprocess = (event) => {
+        const inputData = event.inputData.getChannelData(0);
+        
+        // Downsample and convert to 16-bit PCM
+        const pcm16 = new Int16Array(Math.ceil(inputData.length / downsampleFactor));
+        let pcmIndex = 0;
+        
+        for (let i = 0; i < inputData.length; i += downsampleFactor) {
+          const s = Math.max(-1, Math.min(1, inputData[i]));
+          pcm16[pcmIndex] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+          pcmIndex++;
         }
+        
+        // Send in chunks
+        const uint8 = new Uint8Array(pcm16.buffer);
+        ws.sendAudio(uint8);
+        console.log(`[Voice] Sent ${uint8.byteLength} bytes (${pcm16.length} samples at 16kHz)`);
+      };
+
+      source.connect(processor);
+      processor.connect(audioContext.destination);
+
+      workletNodeRef.current = { 
+        processor, 
+        source, 
+        audioContext
       };
       
-      mediaRecorder.onstart = () => {
-        console.log("[Voice] MediaRecorder started");
-      };
-      
-      mediaRecorder.onstop = () => {
-        console.log("[Voice] MediaRecorder stopped");
-      };
-      
-      workletNodeRef.current = mediaRecorder;
-      mediaRecorder.start(250); // send every 250ms
-      console.log("[Voice] MediaRecorder started with 250ms interval");
+      console.log("[Voice] Web Audio API initialized, capturing raw 16kHz PCM");
       
     } catch (error) {
       console.error("[Voice] Error starting voice recording:", error);
@@ -107,6 +104,10 @@ export default function App() {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
       }
       ws.disconnect();
     }
@@ -117,10 +118,18 @@ export default function App() {
       console.log("[Voice] Stopping voice recording...");
       setListening(false);
       
+      // Disconnect Web Audio API
       if (workletNodeRef.current) {
-        if (workletNodeRef.current.state === 'recording') {
-          console.log("[Voice] Stopping MediaRecorder...");
-          workletNodeRef.current.stop();
+        try {
+          if (workletNodeRef.current.processor) {
+            workletNodeRef.current.source.disconnect();
+            workletNodeRef.current.processor.disconnect();
+          }
+          if (workletNodeRef.current.audioContext) {
+            await workletNodeRef.current.audioContext.close();
+          }
+        } catch (e) {
+          console.warn("[Voice] Error closing audio context:", e);
         }
         workletNodeRef.current = null;
       }
@@ -137,14 +146,7 @@ export default function App() {
       // Wait for final transcript
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Auto-process voice transcript through LLM and TTS
-      if (liveTranscript && liveTranscript.trim().length > 0) {
-        console.log("[Voice] Auto-processing transcript through LLM...");
-        await handleVoiceToVoiceMessage(liveTranscript);
-      } else {
-        setInputText(liveTranscript);
-      }
-      
+      setInputText(liveTranscript);
       console.log("[Voice] Voice recording complete");
       
     } catch (error) {
@@ -238,54 +240,6 @@ export default function App() {
       });
     } catch (err) {
       console.error(err);
-      alert(`Error: ${err.message}`);
-    }
-
-    setAiStreaming(false);
-  };
-
-  // Handle voice-to-voice conversation (auto-speak LLM response)
-  const handleVoiceToVoiceMessage = async (transcript) => {
-    if (!transcript || transcript.trim().length === 0) return;
-
-    console.log("[Voice] Processing voice transcript:", transcript);
-
-    try {
-      // Add user message
-      setMessages((prev) => {
-        const updated = [...prev, { role: "user", content: transcript, streaming: false }];
-        if (!authenticated) localStorage.setItem("guestChat", JSON.stringify(updated));
-        return updated;
-      });
-
-      setAiStreaming(true);
-
-      // Send to LLM
-      console.log("[Voice] Sending to LLM...");
-      const aiResponse = await sendMessageToAI(transcript);
-      console.log("[Voice] LLM response:", aiResponse.text);
-
-      // Add AI response to messages
-      setMessages((prev) => {
-        const updated = [...prev, { role: "assistant", content: aiResponse.text, streaming: false, language: aiResponse.language }];
-        if (!authenticated) localStorage.setItem("guestChat", JSON.stringify(updated));
-        return updated;
-      });
-
-      // Auto-speak the response via TTS
-      try {
-        console.log("[Voice] Generating speech for response...");
-        const audioUrl = await textToSpeech(aiResponse.text, aiResponse.language || "en");
-        console.log("[Voice] Playing audio response...");
-        const audio = new Audio(audioUrl);
-        audio.play().catch(err => console.error("[Voice] Error playing audio:", err));
-      } catch (ttsErr) {
-        console.error("[Voice] TTS Error:", ttsErr);
-        // Continue without audio playback if TTS fails
-      }
-
-    } catch (err) {
-      console.error("[Voice] Error processing voice message:", err);
       alert(`Error: ${err.message}`);
     }
 

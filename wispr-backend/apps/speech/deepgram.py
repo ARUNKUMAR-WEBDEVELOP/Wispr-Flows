@@ -37,22 +37,34 @@ async def deepgram_stream(audio_queue, send_transcript):
         def on_message(self, result, **kwargs):
             """Callback when Deepgram sends transcript"""
             try:
-                if result.channel.alternatives:
-                    sentence = result.channel.alternatives[0].transcript
-                    if sentence:
-                        payload = {
-                            "type": "transcript",
-                            "text": sentence,
-                            "is_final": result.is_final,  # False = interim, True = final
-                            "speech_final": result.speech_final  # Speaker paused
-                        }
-                        print(f"[Deepgram Debug] Transcript: {sentence} (final={result.is_final})")
-                        asyncio.run_coroutine_threadsafe(
-                            transcript_queue.put(json.dumps(payload)), 
-                            loop
-                        )
+                print(f"[Deepgram Debug] Received message from Deepgram: {result}")
+                if result and hasattr(result, 'channel') and result.channel:
+                    if hasattr(result.channel, 'alternatives') and result.channel.alternatives:
+                        alternatives = result.channel.alternatives
+                        if alternatives and len(alternatives) > 0:
+                            sentence = alternatives[0].transcript
+                            if sentence:
+                                payload = {
+                                    "type": "transcript",
+                                    "text": sentence,
+                                    "is_final": result.is_final,  # False = interim, True = final
+                                    "speech_final": result.speech_final  # Speaker paused
+                                }
+                                print(f"[Deepgram Debug] Transcript: {sentence} (final={result.is_final})")
+                                asyncio.run_coroutine_threadsafe(
+                                    transcript_queue.put(json.dumps(payload)), 
+                                    loop
+                                )
+                        else:
+                            print("[Deepgram Debug] No alternatives in result")
+                    else:
+                        print("[Deepgram Debug] Result has no alternatives attribute")
+                else:
+                    print(f"[Deepgram Debug] Result is None or has no channel")
             except Exception as e:
-                print(f"[Deepgram Debug] Error in callback: {e}")
+                print(f"[Deepgram Debug] Error in callback: {type(e).__name__}: {e}")
+                import traceback
+                traceback.print_exc()
 
         # Register callback for transcript events
         dg_connection.on(LiveTranscriptionEvents.Transcript, on_message)
@@ -63,10 +75,11 @@ async def deepgram_stream(audio_queue, send_transcript):
             language="en-US",         # Change to "ta" for Tamil or other language
             smart_format=True,        # Enable punctuation and formatting
             interim_results=True,     # Get results while user is speaking
-            encoding="linear16",      # PCM 16-bit linear
+            encoding="linear16",      # Expect raw 16-bit PCM audio
             channels=1,              # Mono audio
-            sample_rate=16000,       # 16kHz sample rate
+            sample_rate=16000,       # 16kHz sample rate from browser
             endpointing=300,         # 300ms silence = end of speech
+            no_delay=True,           # Reduce latency
         )
 
         # Start connection
