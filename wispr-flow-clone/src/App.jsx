@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useVoiceWebSocket } from "./hooks/useVoiceWebSocket";
+import { useVoiceAgent } from "./hooks/useVoiceAgent";
 import Sidebar from "./components/layout/Sidebar";
 import { Menu } from "lucide-react";
 import Header from "./components/layout/Header";
@@ -31,6 +32,7 @@ export default function App() {
   const [liveTranscript, setLiveTranscript] = useState("");
   const finalTranscriptRef = useRef("");
   const interimTranscriptRef = useRef("");
+  const { processVoiceTranscript } = useVoiceAgent();
 
   const ws = useVoiceWebSocket((data) => {
     if (!data) return;
@@ -225,7 +227,72 @@ export default function App() {
 
       const combined = `${finalTranscriptRef.current}${interimTranscriptRef.current ? " " + interimTranscriptRef.current : ""}`.trim();
       setInputText(combined);
-      setLiveTranscript(combined);
+      setLiveTranscript("");
+      
+      if (!combined) {
+        console.log("[Voice] No transcript captured");
+        return;
+      }
+      
+      console.log("[Voice] Transcript captured:", combined);
+      
+      // If authenticated and have active session, process through voice agent
+      if (authenticated && activeSession) {
+        console.log("[Voice] Processing through voice agent...");
+        setAiStreaming(true);
+        
+        // Add user message  
+        setMessages(prev => [...prev, { role: "user", content: combined, streaming: false }]);
+        
+        let assistantMessage = "";
+        
+        try {
+          await processVoiceTranscript(
+            activeSession,
+            combined,
+            (chunk, isFinal) => {
+              // Stream chunks in real-time
+              assistantMessage += chunk;
+              setMessages(prev => {
+                const updated = [...prev];
+                // Find or create assistant message
+                const lastMsg = updated[updated.length - 1];
+                if (lastMsg && lastMsg.role === "assistant" && lastMsg.streaming) {
+                  lastMsg.content = assistantMessage;
+                } else {
+                  updated.push({
+                    role: "assistant",
+                    content: assistantMessage,
+                    streaming: !isFinal
+                  });
+                }
+                return updated;
+              });
+            },
+            (fullResponse) => {
+              console.log("[Voice] Response complete:", fullResponse);
+              // Mark as complete
+              setMessages(prev => {
+                const updated = [...prev];
+                const lastMsg = updated[updated.length - 1];
+                if (lastMsg && lastMsg.role === "assistant") {
+                  lastMsg.streaming = false;
+                }
+                return updated;
+              });
+              setAiStreaming(false);
+            },
+            (error) => {
+              console.error("[Voice] LLM error:", error);
+              setAiStreaming(false);
+            }
+          );
+        } catch (error) {
+          console.error("[Voice] Error processing voice transcript:", error);
+          setAiStreaming(false);
+        }
+      }
+      
       console.log("[Voice] Voice recording complete");
       
     } catch (error) {
