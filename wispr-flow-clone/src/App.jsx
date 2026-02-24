@@ -1,10 +1,7 @@
-// ...existing state hooks...
-
-  // Voice recording handlers (must be after useState)
-
 import { useState, useEffect, useRef } from "react";
 import { useVoiceWebSocket } from "./hooks/useVoiceWebSocket";
 import Sidebar from "./components/layout/Sidebar";
+import { Menu } from "lucide-react";
 import Header from "./components/layout/Header";
 import VoiceButton from "./components/voice/VoiceButton";
 import ChatWindow from "./components/chat/ChatWindow";
@@ -15,7 +12,10 @@ import { logout } from "./services/auth.service";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function App() {
+  // Voice recording handlers (must be after useState)
+
   const [showModal, setShowModal] = useState(() => !localStorage.getItem("access_token"));
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loginStep, setLoginStep] = useState(null); // null, "login", "skip"
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem("user");
@@ -188,19 +188,38 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-gray-900 text-white">
-      {/* Sidebar */}
-      <Sidebar
-        sessions={sessions}
-        activeSession={activeSession}
-        onSelect={handleSessionSelect}
-        onNewChat={handleNewChat}
-        user={user}
-        authenticated={authenticated}
-        onLogout={handleLogout}
-      />
-
+      {/* Sidebar for desktop, drawer for mobile/tablet */}
+      {/* Hamburger menu for mobile/tablet */}
+      <button
+        className="md:hidden fixed top-4 left-4 z-50 bg-gray-800 p-2 rounded-lg shadow-lg"
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open sidebar"
+      >
+        <Menu size={24} />
+      </button>
+      {/* Sidebar: show as drawer on mobile/tablet, static on desktop */}
+      <div>
+        <Sidebar
+          sessions={sessions}
+          activeSession={activeSession}
+          onSelect={handleSessionSelect}
+          onNewChat={handleNewChat}
+          user={user}
+          authenticated={authenticated}
+          onLogout={handleLogout}
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
+      </div>
+      {/* Overlay for mobile sidebar */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col relative">
+      <div className="flex-1 flex flex-col relative min-w-0">
         <Header authenticated={authenticated} onLogin={() => { setShowModal(true); setLoginStep("login"); }} />
         <AnimatePresence>
           {showModal && (
@@ -247,18 +266,18 @@ export default function App() {
             className="live-transcript-streaming"
             style={{
               position: 'fixed',
-              bottom: 120,
+              bottom: window.innerWidth < 640 ? 80 : 120,
               left: '50%',
               transform: 'translateX(-50%)',
               background: 'rgba(0,0,0,0.85)',
               color: '#fff',
-              padding: '1rem 2rem',
+              padding: window.innerWidth < 640 ? '0.5rem 1rem' : '1rem 2rem',
               borderRadius: '2rem',
-              fontSize: '1.25rem',
+              fontSize: window.innerWidth < 640 ? '1rem' : '1.25rem',
               zIndex: 1000,
               boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
               animation: 'fadeIn 0.3s',
-              maxWidth: '90vw',
+              maxWidth: '98vw',
               textAlign: 'center',
               pointerEvents: 'none',
             }}
@@ -270,8 +289,8 @@ export default function App() {
         {/* Chat window */}
         <ChatWindow messages={messages} isTyping={aiStreaming} />
 
-        <div className="p-4 border-t border-gray-700 flex flex-col gap-3">
-          <div className="flex items-center gap-3">
+        <div className="p-2 sm:p-4 border-t border-gray-700 flex flex-col gap-2 sm:gap-3">
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
             <VoiceButton
               listening={listening}
               onStart={handleStartVoice}
@@ -283,13 +302,13 @@ export default function App() {
               onChange={(e) => setInputText(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSendText()}
               placeholder="Type your message..."
-              className="flex-1 p-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-indigo-500"
+              className="flex-1 p-2 text-base rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-indigo-500 w-full sm:w-auto"
               disabled={listening}
             />
             <button
               onClick={handleSendText}
               disabled={aiStreaming}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-lg"
+              className="px-4 py-2 text-base bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-lg w-full sm:w-auto"
             >
               Send
             </button>

@@ -48,3 +48,15 @@ async def deepgram_stream(audio_queue, send_transcript):
             await asyncio.gather(send_audio(), receive_text())
     except Exception as e:
         print(f"[Deepgram Debug] ERROR: {e}")
+        # Enhanced error logging for HTTP 400 and other errors
+        import traceback
+        traceback.print_exc()
+        if hasattr(e, 'args') and e.args:
+            print(f"[Deepgram Debug] Exception args: {e.args}")
+        # Try to get more info if it's a websockets InvalidStatusCode exception
+        if hasattr(e, 'response') and e.response is not None:
+            try:
+                error_body = await e.response.text()
+                print(f"[Deepgram Debug] Error response body: {error_body}")
+            except Exception as ex:
+                print(f"[Deepgram Debug] Could not read error response body: {ex}")

@@ -3,15 +3,25 @@ import { Plus, MessageSquare, Clock } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 
-export default function Sidebar({ sessions, activeSession, onSelect, onNewChat, user, authenticated, onLogout }) {
+export default function Sidebar({ sessions, activeSession, onSelect, onNewChat, user, authenticated, onLogout, open, onClose }) {
   const [activeTab, setActiveTab] = useState("history");
+  // Responsive: show as drawer on mobile/tablet
   return (
     <motion.div
-      className="w-72 bg-gray-800 border-r border-gray-700 flex flex-col p-4"
+      className={`fixed md:static top-0 left-0 z-50 md:z-auto h-full w-72 bg-gray-800 border-r border-gray-700 flex flex-col p-4 transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
       initial={{ x: -100 }}
-      animate={{ x: 0 }}
+      animate={{ x: open || window.innerWidth >= 768 ? 0 : -288 }}
       exit={{ x: -100 }}
+      style={{ maxWidth: 288 }}
     >
+      {/* Close button for mobile/tablet */}
+      <button
+        className="md:hidden absolute top-4 right-4 bg-gray-700 p-2 rounded-full"
+        onClick={onClose}
+        aria-label="Close sidebar"
+      >
+        ✕
+      </button>
       {/* Logo */}
       <div className="p-4 text-xl font-semibold border-b border-white/10">
         🎙 Wispr Flow
