@@ -150,7 +150,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
     }
 
     setTranscript(finalTranscriptRef.current);
-  });
+  }, { path: "voice-agent" });
 
   // Auto-scroll to bottom
   useEffect(() => {

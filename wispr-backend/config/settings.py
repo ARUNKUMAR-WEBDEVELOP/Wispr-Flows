@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 from datetime import timedelta
 from dotenv import load_dotenv
+from corsheaders.defaults import default_headers, default_methods
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -56,14 +57,13 @@ MIDDLEWARE = [
 # --------------------
 # CORS (Frontend Access)
 # --------------------
-CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = [
-    "https://arunkumar-webdevelop.github.io",
-    "https://wispr-flows-3adt.onrender.com",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "authorization",
+    "x-csrftoken",
+]
+CORS_ALLOW_METHODS = list(default_methods)
 CORS_EXPOSE_HEADERS = [
     "Content-Type",
     "X-CSRFToken",

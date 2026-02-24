@@ -1,9 +1,10 @@
 import { useRef, useState, useCallback } from "react";
 
-export function useVoiceWebSocket(onTranscript) {
+export function useVoiceWebSocket(onTranscript, options = {}) {
   const wsRef = useRef(null);
   const [connected, setConnected] = useState(false);
   const reconnectTimeoutRef = useRef(null);
+  const wsPath = options.path || "speech";
 
   const connect = useCallback(() => {
     if (wsRef.current && wsRef.current.readyState === 1) {
@@ -13,8 +14,8 @@ export function useVoiceWebSocket(onTranscript) {
     
     // Support both localhost and production URLs
     const wsUrl = process.env.NODE_ENV === "development" 
-      ? "ws://localhost:8000/ws/speech/"
-      : "wss://wispr-flows-3adt.onrender.com/ws/speech/";
+      ? `ws://localhost:8000/ws/${wsPath}/`
+      : `wss://wispr-flows-3adt.onrender.com/ws/${wsPath}/`;
     
     console.log(`[WebSocket] Connecting to ${wsUrl}`);
     
@@ -22,7 +23,7 @@ export function useVoiceWebSocket(onTranscript) {
     wsRef.current.binaryType = "arraybuffer";
     
     wsRef.current.onopen = () => {
-      console.log("[WebSocket] Connected to STT");
+      console.log(`[WebSocket] Connected to ${wsPath}`);
       setConnected(true);
       // Clear any pending reconnect timeout
       if (reconnectTimeoutRef.current) {
@@ -32,7 +33,7 @@ export function useVoiceWebSocket(onTranscript) {
     };
     
     wsRef.current.onclose = () => {
-      console.log("[WebSocket] Disconnected from STT");
+      console.log(`[WebSocket] Disconnected from ${wsPath}`);
       setConnected(false);
     };
     

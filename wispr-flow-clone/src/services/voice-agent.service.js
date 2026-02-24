@@ -3,10 +3,6 @@ const API_BASE = "https://wispr-flows-3adt.onrender.com/api";
 export async function getVoiceAgentResponse(message) {
   const token = localStorage.getItem("access_token");
 
-  if (!token) {
-    throw new Error("Not authenticated. Please log in first.");
-  }
-
   if (!message || message.trim().length === 0) {
     throw new Error("Message cannot be empty");
   }
@@ -16,7 +12,7 @@ export async function getVoiceAgentResponse(message) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({
         message: message.trim(),
