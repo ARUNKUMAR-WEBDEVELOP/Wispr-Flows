@@ -46,7 +46,7 @@ export function useVoiceWebSocket(onTranscript) {
         const data = JSON.parse(event.data);
         if (data.type === "transcript" && onTranscript) {
           console.log(`[WebSocket] Transcript (final=${data.is_final}): ${data.text}`);
-          onTranscript(data.text);
+          onTranscript(data);
         }
       } catch (error) {
         console.error("[WebSocket] Error parsing message:", error);

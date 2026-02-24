@@ -29,12 +29,25 @@ export default function App() {
   const [aiStreaming, setAiStreaming] = useState(false);
   const [listening, setListening] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState("");
-  const ws = useVoiceWebSocket((text) => {
-    setLiveTranscript((prev) => {
-      const next = prev ? `${prev} ${text}` : text;
-      setInputText(next);
-      return next;
-    });
+  const finalTranscriptRef = useRef("");
+  const interimTranscriptRef = useRef("");
+
+  const ws = useVoiceWebSocket((data) => {
+    if (!data || !data.text) return;
+
+    if (data.is_final || data.speech_final) {
+      const prefix = finalTranscriptRef.current.trim();
+      finalTranscriptRef.current = prefix ? `${prefix} ${data.text}` : data.text;
+      interimTranscriptRef.current = "";
+    } else {
+      interimTranscriptRef.current = data.text;
+    }
+
+    const combined = `${finalTranscriptRef.current}${interimTranscriptRef.current ? " " + interimTranscriptRef.current : ""}`.trim();
+    setLiveTranscript(combined);
+    if (listening) {
+      setInputText(combined);
+    }
   });
 
   // Live streaming voice handlers using Web Audio API for PCM
@@ -46,6 +59,9 @@ export default function App() {
     try {
       setListening(true);
       setLiveTranscript("");
+      finalTranscriptRef.current = "";
+      interimTranscriptRef.current = "";
+      setInputText("");
       console.log("[Voice] Starting voice recording...");
       
       // Connect to websocket FIRST
@@ -187,8 +203,10 @@ export default function App() {
       
       // Wait for final transcript
       await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setInputText(liveTranscript);
+
+      const combined = `${finalTranscriptRef.current}${interimTranscriptRef.current ? " " + interimTranscriptRef.current : ""}`.trim();
+      setInputText(combined);
+      setLiveTranscript(combined);
       console.log("[Voice] Voice recording complete");
       
     } catch (error) {
@@ -376,7 +394,31 @@ export default function App() {
           )}
         </AnimatePresence>
 
-
+        {/* Live transcript streaming UI */}
+        {listening && liveTranscript && (
+          <div
+            className="live-transcript-streaming"
+            style={{
+              position: 'fixed',
+              bottom: window.innerWidth < 640 ? 80 : 120,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: 'rgba(0,0,0,0.85)',
+              color: '#fff',
+              padding: window.innerWidth < 640 ? '0.5rem 1rem' : '1rem 2rem',
+              borderRadius: '2rem',
+              fontSize: window.innerWidth < 640 ? '1rem' : '1.25rem',
+              zIndex: 1000,
+              boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
+              animation: 'fadeIn 0.3s',
+              maxWidth: '98vw',
+              textAlign: 'center',
+              pointerEvents: 'none',
+            }}
+          >
+            <span style={{ fontWeight: 600, letterSpacing: 0.5 }}>{liveTranscript}</span>
+          </div>
+        )}
 
         {/* Chat window */}
         <ChatWindow messages={messages} isTyping={aiStreaming} />
