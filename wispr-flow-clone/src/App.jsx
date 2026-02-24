@@ -43,10 +43,10 @@ export default function App() {
       interimTranscriptRef.current = data.text;
     }
 
-    const combined = `${finalTranscriptRef.current}${interimTranscriptRef.current ? " " + interimTranscriptRef.current : ""}`.trim();
-    setLiveTranscript(combined);
+    // Show only interim text while speaking
     if (listening) {
-      setInputText(combined);
+      setLiveTranscript(interimTranscriptRef.current);
+      setInputText(interimTranscriptRef.current);
     }
   });
 
@@ -206,8 +206,11 @@ export default function App() {
 
       const combined = `${finalTranscriptRef.current}${interimTranscriptRef.current ? " " + interimTranscriptRef.current : ""}`.trim();
       setInputText(combined);
-      setLiveTranscript(combined);
+      setLiveTranscript("");
       console.log("[Voice] Voice recording complete");
+
+      // Auto-send the final transcript to the chat model
+      await sendTextToAI(combined);
       
     } catch (error) {
       console.error("[Voice] Error stopping voice recording:", error);
@@ -278,11 +281,11 @@ export default function App() {
   };
 
   // Handle manual chat submit
-  const handleSendText = async () => {
-    if (!inputText) return;
+  const sendTextToAI = async (text) => {
+    if (!text) return;
 
     setMessages((prev) => {
-      const updated = [...prev, { role: "user", content: inputText, streaming: false }];
+      const updated = [...prev, { role: "user", content: text, streaming: false }];
       if (!authenticated) localStorage.setItem("guestChat", JSON.stringify(updated));
       return updated;
     });
@@ -291,7 +294,7 @@ export default function App() {
     setAiStreaming(true);
 
     try {
-      const aiResponse = await sendMessageToAI(inputText);
+      const aiResponse = await sendMessageToAI(text);
       setMessages((prev) => {
         const updated = [...prev, { role: "assistant", content: aiResponse.text, streaming: false, language: aiResponse.language }];
         if (!authenticated) localStorage.setItem("guestChat", JSON.stringify(updated));
@@ -304,6 +307,11 @@ export default function App() {
     }
 
     setAiStreaming(false);
+  };
+
+  const handleSendText = async () => {
+    if (!inputText) return;
+    await sendTextToAI(inputText);
   };
 
   // Handle logout
@@ -432,7 +440,7 @@ export default function App() {
             />
             <input
               type="text"
-              value={listening ? liveTranscript : inputText}
+              value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSendText()}
               placeholder="Type your message..."
