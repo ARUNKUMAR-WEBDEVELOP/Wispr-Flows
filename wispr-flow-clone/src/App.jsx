@@ -49,42 +49,65 @@ export default function App() {
       await new Promise(resolve => setTimeout(resolve, 500));
       
       console.log("[Voice] Getting microphone access...");
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: false,
+          sampleRate: 16000
+        }
+      });
       streamRef.current = stream;
       console.log("[Voice] Microphone access granted");
 
-      // Use Web Audio API to capture raw PCM audio (not encoded)
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      // Create audio context with explicit sample rate
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)({
+        sampleRate: 16000
+      });
       audioContextRef.current = audioContext;
       
+      // Resume audio context if suspended (required on some browsers)
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+        console.log("[Voice] Audio context resumed");
+      }
+      
       const source = audioContext.createMediaStreamSource(stream);
+      
+      // Create ScriptProcessorNode with matching sample rate
       const processor = audioContext.createScriptProcessor(4096, 1, 1);
       
-      const sourceSampleRate = audioContext.sampleRate;
-      const targetSampleRate = 16000; // Deepgram expects 16kHz
-      console.log(`[Voice] Resampling from ${sourceSampleRate}Hz to ${targetSampleRate}Hz`);
-
-      // For downsampling
-      let downsampleFactor = Math.round(sourceSampleRate / targetSampleRate);
-      let downsampleBuffer = [];
+      console.log(`[Voice] Audio context sample rate: ${audioContext.sampleRate}Hz`);
 
       processor.onaudioprocess = (event) => {
-        const inputData = event.inputData.getChannelData(0);
-        
-        // Downsample and convert to 16-bit PCM
-        const pcm16 = new Int16Array(Math.ceil(inputData.length / downsampleFactor));
-        let pcmIndex = 0;
-        
-        for (let i = 0; i < inputData.length; i += downsampleFactor) {
-          const s = Math.max(-1, Math.min(1, inputData[i]));
-          pcm16[pcmIndex] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-          pcmIndex++;
+        try {
+          // Safely get input data
+          const inputData = event?.inputData?.getChannelData?.(0);
+          
+          if (!inputData) {
+            console.warn("[Voice] No audio input data available");
+            return;
+          }
+          
+          // Convert float32 to 16-bit PCM
+          const pcm16 = new Int16Array(inputData.length);
+          for (let i = 0; i < inputData.length; i++) {
+            const s = Math.max(-1, Math.min(1, inputData[i]));
+            pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+          }
+          
+          // Send as uint8 bytes
+          const uint8 = new Uint8Array(pcm16.buffer);
+          ws.sendAudio(uint8);
+          console.log(`[Voice] Sent ${uint8.byteLength} bytes of 16-bit PCM`);
+          
+        } catch (error) {
+          console.error("[Voice] Error in onaudioprocess:", error);
         }
-        
-        // Send in chunks
-        const uint8 = new Uint8Array(pcm16.buffer);
-        ws.sendAudio(uint8);
-        console.log(`[Voice] Sent ${uint8.byteLength} bytes (${pcm16.length} samples at 16kHz)`);
+      };
+
+      processor.onerror = (event) => {
+        console.error("[Voice] ScriptProcessorNode error:", event);
       };
 
       source.connect(processor);
@@ -96,7 +119,7 @@ export default function App() {
         audioContext
       };
       
-      console.log("[Voice] Web Audio API initialized, capturing raw 16kHz PCM");
+      console.log("[Voice] Audio processor initialized");
       
     } catch (error) {
       console.error("[Voice] Error starting voice recording:", error);
