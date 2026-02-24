@@ -94,7 +94,8 @@ async def deepgram_stream(audio_queue, send_transcript):
             while True:
                 try:
                     msg = await transcript_queue.get()
-                    await send_transcript(json.loads(msg)["text"])
+                    payload = json.loads(msg)
+                    await send_transcript(payload)
                 except asyncio.CancelledError:
                     break
                 except Exception as e:

@@ -33,9 +33,14 @@ class SpeechConsumer(AsyncWebsocketConsumer):
         else:
             print(f"[SpeechConsumer Debug] Received non-audio data: {text_data}")
 
-    async def send_transcript(self, text):
-        print(f"[SpeechConsumer Debug] Sending transcript: {text}")
+    async def send_transcript(self, payload):
+        if isinstance(payload, dict):
+            print(f"[SpeechConsumer Debug] Sending transcript payload: {payload}")
+            await self.send(text_data=json.dumps(payload))
+            return
+
+        print(f"[SpeechConsumer Debug] Sending transcript: {payload}")
         await self.send(text_data=json.dumps({
             "type": "transcript",
-            "text": text
+            "text": payload
         }))
