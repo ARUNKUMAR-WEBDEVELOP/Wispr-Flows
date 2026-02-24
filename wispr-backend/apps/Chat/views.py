@@ -133,7 +133,7 @@ class StreamAIResponseView(APIView):
         )
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def voice_agent_response(request):
     """
     Live voice agent endpoint.

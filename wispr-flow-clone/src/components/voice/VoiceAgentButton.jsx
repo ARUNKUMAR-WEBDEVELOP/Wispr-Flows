@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, Mic, X, Loader, Copy } from "lucide-react";
+import { MessageCircle, Mic, X, Send, Loader, Volume2, Copy } from "lucide-react";
 import { getVoiceAgentResponse } from "../../services/voice-agent.service";
 import { textToSpeech } from "../../services/tts.service";
 import { useVoiceWebSocket } from "../../hooks/useVoiceWebSocket";
@@ -25,21 +25,13 @@ function AnimatedWaveform({ isActive = false }) {
   );
 }
 
-function Orb({ active = false }) {
+function VoiceRing({ isActive = false }) {
   return (
-    <div className="relative h-44 w-44">
-      <div
-        className={`absolute inset-0 rounded-full bg-gradient-to-r from-fuchsia-500 via-cyan-400 to-emerald-400 opacity-70 ${
-          active ? "animate-orb-spin" : ""
-        }`}
-      />
-      <div
-        className={`absolute inset-1 rounded-full bg-gradient-to-r from-emerald-400 via-fuchsia-500 to-cyan-400 blur-lg opacity-60 ${
-          active ? "animate-orb-pulse" : ""
-        }`}
-      />
-      <div className="absolute inset-3 rounded-full bg-black" />
-      <div className="absolute inset-3 rounded-full ring-1 ring-white/10" />
+    <div className="relative flex items-center justify-center">
+      <div className={`voice-ring ${isActive ? "voice-ring-active" : ""}`} />
+      <div className={`voice-ring-core ${isActive ? "voice-ring-core-active" : ""}`}>
+        <Mic className="w-6 h-6 text-white/90" />
+      </div>
     </div>
   );
 }
@@ -107,7 +99,6 @@ function TranscriptDisplay({ text, isInterim = false }) {
 
 export default function VoiceAgentButton({ onResponseReceived }) {
   const [showModal, setShowModal] = useState(false);
-  const [activeTab, setActiveTab] = useState("agent");
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -237,12 +228,6 @@ export default function VoiceAgentButton({ onResponseReceived }) {
       // Connect WebSocket
       ws.connect();
       await new Promise(resolve => setTimeout(resolve, 500));
-      if (!ws.connected) {
-        setError("STT connection failed. Please try again.");
-        setIsListening(false);
-        handleStopListening();
-        return;
-      }
 
       // Get microphone access
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -358,13 +343,13 @@ export default function VoiceAgentButton({ onResponseReceived }) {
           0%, 60%, 100% { transform: scaleY(0.5); }
           30% { transform: scaleY(1); }
         }
-        @keyframes orbSpin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        @keyframes ringSpin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
-        @keyframes orbPulse {
-          0%, 100% { transform: scale(1); opacity: 0.6; }
-          50% { transform: scale(1.08); opacity: 0.9; }
+        @keyframes ringPulse {
+          0%, 100% { transform: scale(1); opacity: 0.9; }
+          50% { transform: scale(1.05); opacity: 1; }
         }
         @keyframes fadeIn {
           from { opacity: 0; }
@@ -373,18 +358,42 @@ export default function VoiceAgentButton({ onResponseReceived }) {
         .animate-in {
           animation: fadeIn 0.3s ease-out;
         }
-        .animate-orb-spin {
-          animation: orbSpin 8s linear infinite;
-        }
-        .animate-orb-pulse {
-          animation: orbPulse 2.6s ease-in-out infinite;
-        }
         .slide-in-from-bottom-2 {
           animation: slideInBottom 0.3s ease-out;
         }
         @keyframes slideInBottom {
           from { opacity: 0; transform: translateY(8px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        .voice-ring {
+          width: 150px;
+          height: 150px;
+          border-radius: 9999px;
+          background: conic-gradient(
+            #7c3aed,
+            #22d3ee,
+            #a855f7,
+            #10b981,
+            #7c3aed
+          );
+          filter: drop-shadow(0 0 12px rgba(124, 58, 237, 0.5));
+        }
+        .voice-ring-active {
+          animation: ringSpin 4s linear infinite;
+        }
+        .voice-ring-core {
+          position: absolute;
+          width: 76px;
+          height: 76px;
+          border-radius: 9999px;
+          background: radial-gradient(circle at 30% 30%, #1f2937, #0f172a);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.4);
+        }
+        .voice-ring-core-active {
+          animation: ringPulse 1.2s ease-in-out infinite;
         }
       `}</style>
 
@@ -400,73 +409,51 @@ export default function VoiceAgentButton({ onResponseReceived }) {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in">
-          <div className="bg-black rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col border border-white/10 overflow-hidden">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700 overflow-hidden">
             
             {/* Header */}
-            <div className="flex items-center justify-between p-5 border-b border-white/10">
-              <div className="flex items-center gap-6">
-                <button
-                  onClick={() => setActiveTab("agent")}
-                  className={`text-sm font-semibold pb-2 border-b-2 ${
-                    activeTab === "agent"
-                      ? "text-white border-pink-500"
-                      : "text-white/60 border-transparent hover:text-white"
-                  }`}
-                >
-                  Agent
-                </button>
-                <button
-                  onClick={() => setActiveTab("developer")}
-                  className={`text-sm font-semibold pb-2 border-b-2 ${
-                    activeTab === "developer"
-                      ? "text-white border-pink-500"
-                      : "text-white/60 border-transparent hover:text-white"
-                  }`}
-                >
-                  Developer Console
-                </button>
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 dark:from-gray-800 to-purple-100 dark:to-gray-900">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Voice Agent</h2>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Powered by Deepgram & Gemini</p>
               </div>
               <button
                 onClick={closeModal}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
               >
-                <X className="w-5 h-5 text-white/70" />
+                <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
             </div>
 
             {/* Conversation Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {activeTab === "developer" ? (
-                <div className="text-white/80 text-sm space-y-3">
-                  <p className="text-white font-semibold">Developer Console</p>
-                  <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-                    <p className="text-white/70">Listening: {isListening ? "on" : "off"}</p>
-                    <p className="text-white/70">Processing: {isProcessing ? "on" : "off"}</p>
-                    <p className="text-white/70">Transcript: {transcript || "-"}</p>
-                    <p className="text-white/70">Interim: {interimTranscript || "-"}</p>
-                  </div>
-                </div>
-              ) : conversations.length === 0 ? (
+              {conversations.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center gap-6">
-                  <Orb active={isListening} />
+                  <VoiceRing isActive={isListening} />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                      Talk to your agent
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xs">
+                      Speak naturally and get answers in real time.
+                    </p>
+                  </div>
                   <button
-                    onClick={handleStartListening}
-                    disabled={isProcessing}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
-                      isProcessing
-                        ? "bg-white/10 text-white/50"
-                        : "bg-white/10 text-white hover:bg-white/20"
+                    onClick={isListening ? handleStopListening : handleStartListening}
+                    className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+                      isListening
+                        ? "bg-red-600 text-white hover:bg-red-700"
+                        : "bg-gray-200 text-gray-900 hover:bg-gray-300"
                     }`}
                   >
-                    <Mic className="w-4 h-4" />
-                    Talk To Your Agent
+                    {isListening ? "Stop" : "Talk To Your Agent"}
                   </button>
                 </div>
               ) : (
                 <>
                   {conversations.map((msg) => (
-                    <div key={msg.id} className="flex items-start gap-3 group">
+                    <div key={msg.id} className="flex items-start gap-3">
                       {msg.role !== "user" && (
                         <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
                           <span className="text-white text-xs font-bold">A</span>
