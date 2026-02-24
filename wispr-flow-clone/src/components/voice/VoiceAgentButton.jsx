@@ -237,6 +237,12 @@ export default function VoiceAgentButton({ onResponseReceived }) {
       // Connect WebSocket
       ws.connect();
       await new Promise(resolve => setTimeout(resolve, 500));
+      if (!ws.connected) {
+        setError("STT connection failed. Please try again.");
+        setIsListening(false);
+        handleStopListening();
+        return;
+      }
 
       // Get microphone access
       const stream = await navigator.mediaDevices.getUserMedia({
