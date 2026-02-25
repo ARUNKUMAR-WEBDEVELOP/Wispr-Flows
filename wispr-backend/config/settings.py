@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 # --------------------
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
+    "config.cors_middleware.CustomCORSMiddleware",  # Custom CORS for edge cases
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -104,7 +105,12 @@ CSRF_TRUSTED_ORIGINS = [
 
 # Allow Google OAuth popup
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
-SECURE_CROSS_ORIGIN_EMBEDDER_POLICY = "require-corp"
+# Don't set SECURE_CROSS_ORIGIN_EMBEDDER_POLICY - it can interfere with Google OAuth
+# SECURE_CROSS_ORIGIN_EMBEDDER_POLICY = "require-corp"
+
+# Session security - relax for cross-origin
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
 
 # --------------------
 # URL / WSGI / ASGI
@@ -187,3 +193,38 @@ DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+# --------------------
+# LOGGING
+# --------------------
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "[{levelname}] {asctime} {name} - {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+    "loggers": {
+        "config.cors_middleware": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+        "apps.account.views": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+    },
+}

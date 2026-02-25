@@ -41,6 +41,7 @@ export async function googleLogin(googleToken) {
   // Send Google ID token to backend for verification and JWT generation
   try {
     console.log("[Auth] Attempting Google login...");
+    console.log("[Auth] Backend URL:", API_BASE);
     
     const res = await fetch(`${API_BASE}/auth/google/`, {
       method: "POST",
@@ -54,6 +55,7 @@ export async function googleLogin(googleToken) {
     });
 
     console.log("[Auth] Google login response status:", res.status);
+    console.log("[Auth] Response headers - Access-Control-Allow-Origin:", res.headers.get("Access-Control-Allow-Origin"));
 
     // Try to parse as JSON
     let data;
@@ -62,7 +64,11 @@ export async function googleLogin(googleToken) {
     } catch (jsonError) {
       // If JSON parsing fails, the response is HTML (error page)
       const text = await res.text();
-      console.error("[Auth] Backend returned non-JSON response:", text.substring(0, 200));
+      console.error("[Auth] Backend returned non-JSON response:", text.substring(0, 500));
+      
+      if (res.status === 0 || res.type === 'opaque') {
+        throw new Error("CORS error: Backend is blocking the request. Check that your origin is allowed and the backend is configured correctly.");
+      }
       throw new Error("Backend server error. Check network tab for details.");
     }
 
