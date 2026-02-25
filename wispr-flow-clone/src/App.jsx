@@ -424,12 +424,17 @@ export default function App() {
         {/* Chat window */}
         <ChatWindow messages={messages} isTyping={aiStreaming} liveTranscript={listening ? liveTranscript : null} />
 
-        {/* Modern Input Area */}
-        <div className="p-4 sm:p-6 border-t border-purple-500/20 bg-gradient-to-r from-gray-900/95 via-purple-900/20 to-gray-900/95 backdrop-blur-xl">
-          <div className="max-w-4xl mx-auto">
+        {/* Premium Input Area with Gradient Background */}
+        <div className="relative p-4 sm:p-6 border-t border-purple-500/30 bg-gradient-to-br from-gray-900/95 via-purple-900/30 to-pink-900/20 backdrop-blur-xl shadow-2xl">
+          {/* Animated gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-purple-600/10 opacity-50"></div>
+          <div className="absolute top-0 left-1/4 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-pink-500/20 rounded-full blur-3xl animate-float" style={{animationDelay: '1.5s'}}></div>
+          
+          <div className="relative z-10 max-w-4xl mx-auto">
             <div className="flex flex-col sm:flex-row items-center gap-3">
-              {/* Voice Buttons */}
-              <div className="flex gap-2 w-full sm:w-auto">
+              {/* Voice Buttons with Premium Design */}
+              <div className="flex gap-3 w-full sm:w-auto">
                 <VoiceButton
                   listening={listening}
                   onStart={handleStartVoice}
@@ -442,33 +447,55 @@ export default function App() {
                 />
               </div>
               
-              {/* Input Field */}
-              <div className="relative flex-1 w-full sm:w-auto">
+              {/* Enhanced Input Field with Glassmorphism */}
+              <div className="relative flex-1 w-full sm:w-auto group">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"></div>
                 <input
                   type="text"
                   value={listening ? liveTranscript : inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleSendText()}
-                  placeholder="Type your message or use voice..."
-                  className="w-full px-5 py-3 text-base rounded-xl bg-white/10 backdrop-blur-sm border-2 border-purple-500/30 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 text-white placeholder-gray-400 transition-all duration-300"
+                  placeholder="✨ Type your message or use voice..."
+                  className="relative w-full px-5 py-3.5 text-base rounded-xl bg-white/10 backdrop-blur-md border-2 border-purple-500/30 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/30 text-white placeholder-gray-400 transition-all duration-300 shadow-lg hover:shadow-xl hover:bg-white/15"
                   disabled={listening}
                 />
                 {listening && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-1">
-                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                    <span className="text-xs text-red-400 font-medium">Listening...</span>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-red-500/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-red-500/30">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    </span>
+                    <span className="text-xs text-red-300 font-bold">Recording</span>
                   </div>
                 )}
               </div>
               
-              {/* Send Button */}
+              {/* Premium Send Button */}
               <button
                 onClick={handleSendText}
                 disabled={aiStreaming || !inputText.trim()}
-                className="group relative px-6 py-3 text-base bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 hover:shadow-xl hover:shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-95 w-full sm:w-auto overflow-hidden"
+                className="group relative px-6 py-3.5 text-base bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 hover:shadow-2xl hover:shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-bold text-white transition-all duration-300 hover:scale-105 active:scale-95 w-full sm:w-auto overflow-hidden shadow-lg"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
-                <span className="relative z-10">{aiStreaming ? "Sending..." : "Send"}</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl"></div>
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {aiStreaming ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                      </svg>
+                      Send
+                    </>
+                  )}
+                </span>
               </button>
             </div>
           </div>
