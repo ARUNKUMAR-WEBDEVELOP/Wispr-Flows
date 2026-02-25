@@ -11,3 +11,4 @@ from .views import (
 urlpatterns = [
     path("ask/", ask_ai, name="ask"),
     path("voice-agent/", voice_agent_response, name="voice_agent"),
+]

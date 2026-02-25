@@ -46,7 +46,6 @@ INSTALLED_APPS = [
 # --------------------
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
-    "config.cors_middleware.CustomCORSMiddleware",  # Custom CORS for edge cases
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -58,41 +57,69 @@ MIDDLEWARE = [
 # --------------------
 # CORS (Frontend Access)
 # --------------------
-# Explicitly allow specific origins for better control
-CORS_ALLOWED_ORIGINS = [
-    "https://arunkumar-webdevelop.github.io",
-    "https://wispr-flows-3adt.onrender.com",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+# In production, use specific origins
+# In development, can be more permissive
+import os
+
+ENV = os.getenv("ENV", "development")
+
+if ENV == "production":
+    CORS_ALLOWED_ORIGINS = [
+        "https://arunkumar-webdevelop.github.io",
+        "https://wispr-flows-3adt.onrender.com",
+    ]
+else:
+    # Development: allow localhost and all standard ports
+    CORS_ALLOWED_ORIGINS = [
+        "https://arunkumar-webdevelop.github.io",
+        "https://wispr-flows-3adt.onrender.com",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# Comprehensive headers list
 CORS_ALLOW_HEADERS = [
     "accept",
     "accept-encoding",
+    "accept-language",
     "authorization",
+    "cache-control",
+    "content-length",
     "content-type",
     "dnt",
     "origin",
+    "pragma",
+    "referer",
     "user-agent",
     "x-csrftoken",
     "x-requested-with",
 ]
+
 CORS_ALLOW_METHODS = [
     "DELETE",
     "GET",
+    "HEAD",
     "OPTIONS",
     "PATCH",
     "POST",
     "PUT",
 ]
+
 CORS_EXPOSE_HEADERS = [
+    "Content-Length",
     "Content-Type",
     "X-CSRFToken",
     "Authorization",
 ]
+
+# Preflight cache time
+CORS_PREFLIGHT_MAX_AGE = 3600
 
 CSRF_TRUSTED_ORIGINS = [
     "https://arunkumar-webdevelop.github.io",
@@ -105,12 +132,11 @@ CSRF_TRUSTED_ORIGINS = [
 
 # Allow Google OAuth popup
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
-# Don't set SECURE_CROSS_ORIGIN_EMBEDDER_POLICY - it can interfere with Google OAuth
-# SECURE_CROSS_ORIGIN_EMBEDDER_POLICY = "require-corp"
 
 # Session security - relax for cross-origin
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
+
 
 # --------------------
 # URL / WSGI / ASGI

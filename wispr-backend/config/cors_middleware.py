@@ -1,43 +1,32 @@
 """
-Custom CORS middleware to ensure CORS headers are properly sent.
-This supplements django-cors-headers for edge cases (like Render.com proxies).
+Custom CORS middleware to supplement django-cors-headers.
+This is a fallback for edge cases where CORS headers might not be sent.
 """
 
 from django.conf import settings
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class CustomCORSMiddleware:
     """
-    Add CORS headers to all responses, especially important for preflight OPTIONS requests.
-    Works in conjunction with django-cors-headers middleware.
+    Add CORS headers to all responses.
     """
 
     def __init__(self, get_response):
         self.get_response = get_response
         self.allowed_origins = getattr(settings, "CORS_ALLOWED_ORIGINS", [])
-        logger.info(f"[CORS Middleware] Initialized with allowed origins: {self.allowed_origins}")
 
     def __call__(self, request):
         # Get the origin from the request
         origin = request.META.get("HTTP_ORIGIN", "")
-        
-        # Log all requests for debugging
-        if origin:
-            logger.debug(f"[CORS Middleware] Request from origin: {origin}")
 
         # Check if origin is allowed
         is_allowed = origin in self.allowed_origins
 
-        if not is_allowed and origin:
-            logger.warning(f"[CORS Middleware] Origin not allowed: {origin}")
-
+        # Get the response from the next middleware/view
         response = self.get_response(request)
 
         # Add CORS headers if origin is allowed
-        if is_allowed:
+        if is_allowed and origin:
             response["Access-Control-Allow-Origin"] = origin
             response["Access-Control-Allow-Credentials"] = "true"
             response["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
@@ -47,14 +36,12 @@ class CustomCORSMiddleware:
             )
             response["Access-Control-Expose-Headers"] = "Content-Type, X-CSRFToken, Authorization"
             response["Access-Control-Max-Age"] = "3600"
-            
-            logger.debug(f"[CORS Middleware] CORS headers added for origin: {origin}")
 
-        # Handle preflight OPTIONS requests
+        # Always allow OPTIONS requests
         if request.method == "OPTIONS" and is_allowed:
             response.status_code = 200
             response["Content-Length"] = "0"
-            logger.debug(f"[CORS Middleware] Handled preflight OPTIONS request from {origin}")
 
         return response
+
 
