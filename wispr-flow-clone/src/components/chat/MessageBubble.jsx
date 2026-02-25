@@ -26,7 +26,7 @@ export default function MessageBubble({ message, index = 0 }) {
 
   return (
     <div
-      className={`flex gap-3 items-start ${
+      className={`flex gap-4 items-start ${
         isUser ? "justify-end" : "justify-start"
       } animate-slide-in`}
       style={{ animationDelay: `${index * 0.05}s` }}
@@ -40,7 +40,7 @@ export default function MessageBubble({ message, index = 0 }) {
       
       {/* Message Bubble */}
       <div
-        className={`group relative max-w-[75%] rounded-2xl px-5 py-3.5 text-sm leading-relaxed backdrop-blur-sm transition-all duration-300
+        className={`group relative max-w-[85%] sm:max-w-[70%] rounded-2xl px-5 py-4 text-[0.95rem] leading-relaxed backdrop-blur-sm transition-all duration-300
         ${
           isUser
             ? "bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 text-white rounded-br-sm shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 hover:scale-[1.02]"

@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,7 +11,7 @@ html, body, #root {
 body {
   background: linear-gradient(to bottom right, #0f0f23, #1a0a2e, #0f0f23);
   color: #e5e5e5;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-family: "Space Grotesk", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 ::-webkit-scrollbar {
