@@ -560,55 +560,90 @@ export default function VoiceAgentButton({ onResponseReceived }) {
         }
       `}</style>
 
-      {/* Voice Agent Button - Enhanced */}
+      {/* Voice Agent Button - Premium Design */}
       <button
         onClick={openModal}
-        className="group relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 flex-1 sm:flex-none bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 text-white hover:shadow-2xl hover:shadow-purple-500/50 active:scale-95 overflow-hidden"
-        title="Open Voice Agent"
+        className="group relative flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold transition-all duration-300 flex-1 sm:flex-none bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 text-white hover:shadow-2xl hover:shadow-purple-500/50 active:scale-95 overflow-hidden shadow-lg animate-pulse-slow"
+        title="Open AI Voice Agent"
       >
+        {/* Animated background glow */}
         <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
-        <MessageCircle className="w-5 h-5 relative z-10 group-hover:scale-110 transition-transform duration-300" />
-        <span className="hidden sm:inline relative z-10">Voice Agent</span>
+        
+        {/* Icon with animation */}
+        <div className="relative z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+          <MessageCircle className="w-4 h-4" />
+        </div>
+        
+        <span className="hidden sm:inline relative z-10 tracking-wide">AI Voice Agent</span>
+        
+        {/* Pulse indicator */}
+        <span className="absolute top-1 right-1 flex h-3 w-3 z-20">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 shadow-lg shadow-green-500/50"></span>
+        </span>
+        
+        {/* Shimmer effect */}
         <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
       </button>
 
-      {/* Modal - Enhanced with Glassmorphism */}
+      {/* Modal - Premium Glassmorphism Design */}
       {showModal && (
-        <div className="fixed inset-0 bg-gradient-to-br from-purple-900/40 via-black/50 to-pink-900/40 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in">
-          <div className="glass-panel rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden modal-enter border-2 border-purple-500/20">
+        <div 
+          className="fixed inset-0 bg-gradient-to-br from-purple-900/40 via-black/60 to-pink-900/40 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in"
+          onClick={(e) => e.target === e.currentTarget && closeModal()}
+        >
+          <div className="glass-panel rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden modal-enter border-2 border-purple-500/30 animate-slide-in">
             
-            {/* Header - Enhanced Gradient */}
-            <div className="relative flex items-center justify-between p-6 border-b border-purple-200/30 dark:border-purple-500/20 bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 animate-pulse"></div>
-              <div className="relative z-10">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <span className="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50"></span>
-                  Voice Agent
-                </h2>
-                <p className="text-xs text-purple-100 mt-1 font-medium">✨ Powered by Deepgram & Gemini</p>
+            {/* Header - Premium Design */}
+            <div className="relative flex items-center justify-between p-6 border-b border-white/20 bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 overflow-hidden shadow-2xl">
+              {/* Animated background */}
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-400/30 to-pink-400/30 animate-pulse"></div>
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute top-0 left-0 w-40 h-40 bg-white/30 rounded-full blur-3xl animate-float"></div>
+                <div className="absolute bottom-0 right-0 w-32 h-32 bg-pink-300/30 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}}></div>
               </div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-xl">
+                    <MessageCircle className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                      AI Voice Agent
+                      <span className="inline-flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-green-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400 shadow-lg shadow-green-400/50"></span>
+                      </span>
+                    </h2>
+                    <p className="text-xs text-white/90 mt-0.5 font-medium backdrop-blur-sm">✨ Powered by Deepgram & Gemini AI</p>
+                  </div>
+                </div>
+              </div>
+              
               <div className="flex items-center gap-2 relative z-10">
                 {conversations.length > 0 && (
                   <button
                     onClick={handleExportConversation}
-                    className="p-2.5 hover:bg-white/25 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-110 active:scale-95"
+                    className="p-2.5 bg-white/10 hover:bg-white/25 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg"
                     title="Export conversation"
                   >
-                    <Download className="w-4 h-4 text-white drop-shadow-lg" />
+                    <Download className="w-5 h-5 text-white drop-shadow-lg" />
                   </button>
                 )}
                 <button
                   onClick={() => setShowSettings(!showSettings)}
-                  className="p-2.5 hover:bg-white/25 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-110 hover:rotate-90 active:scale-95"
+                  className="p-2.5 bg-white/10 hover:bg-white/25 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-110 hover:rotate-90 active:scale-95 shadow-lg"
                   title="Settings"
                 >
-                  <Settings className="w-4 h-4 text-white drop-shadow-lg" />
+                  <Settings className="w-5 h-5 text-white drop-shadow-lg" />
                 </button>
                 <button
                   onClick={closeModal}
-                  className="p-2.5 hover:bg-red-500/30 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-110 active:scale-95"
+                  className="p-2.5 bg-white/10 hover:bg-red-500/50 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg group\"
+                  title=\"Close\"
                 >
-                  <X className="w-5 h-5 text-white drop-shadow-lg" />
+                  <X className="w-5 h-5 text-white drop-shadow-lg group-hover:rotate-90 transition-transform duration-300" />
                 </button>
               </div>
             </div>
