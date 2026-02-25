@@ -341,7 +341,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-900 via-purple-900/10 to-gray-900 text-white overflow-hidden">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/40 to-gray-900 text-white overflow-x-hidden">
       {/* Sidebar for desktop, drawer for mobile/tablet */}
       {/* Hamburger menu for mobile/tablet */}
       <button
