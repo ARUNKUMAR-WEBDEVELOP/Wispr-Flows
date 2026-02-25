@@ -373,7 +373,7 @@ export default function App() {
         />
       )}
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col relative min-w-0">
+      <div className="flex-1 flex flex-col relative min-w-0 w-full">
         <Header authenticated={authenticated} onLogin={() => { setShowModal(true); setLoginStep("login"); }} />
         <AnimatePresence>
           {showModal && (
