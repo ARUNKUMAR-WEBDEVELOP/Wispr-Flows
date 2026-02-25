@@ -123,6 +123,11 @@ export default function VoiceAgentButton({ onResponseReceived }) {
   const conversationsEndRef = useRef(null);
   const audioUrlsRef = useRef({}); // Store audio URLs for replay
 
+  // Keep only last N messages to prevent modal overflow
+  const MAX_VISIBLE_MESSAGES = 20;
+  const displayedConversations = conversations.slice(-MAX_VISIBLE_MESSAGES);
+  const hasMoreMessages = conversations.length > MAX_VISIBLE_MESSAGES;
+
   // Deepgram WebSocket hook
   const ws = useVoiceWebSocket((data) => {
     if (!data) return;
@@ -727,7 +732,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
             )}
 
             {/* Conversation Area */}
-            <div className="flex-1 min-h-0 overflow-hidden p-5 sm:p-6 space-y-4">
+            <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-5 sm:p-6 space-y-4">
               {conversations.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center gap-8">
                   <div className="relative">
@@ -763,7 +768,14 @@ export default function VoiceAgentButton({ onResponseReceived }) {
                 </div>
               ) : (
                 <>
-                  {conversations.map((msg) => (
+                  {hasMoreMessages && (
+                    <div className="sticky top-0 z-40 text-center py-2 px-3 bg-purple-600/20 rounded-lg border border-purple-500/30 backdrop-blur-sm">
+                      <p className="text-xs text-purple-300 font-medium">
+                        ↑ {conversations.length - MAX_VISIBLE_MESSAGES} earlier messages (auto-collapsed)
+                      </p>
+                    </div>
+                  )}
+                  {displayedConversations.map((msg) => (
                     <div key={msg.id} className="flex items-start gap-3 group animate-in slide-in-from-bottom-2">
                       {msg.role !== "user" && (
                         <div className="shrink-0 w-10 h-10 bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/50 ring-2 ring-white/20 float-animation">
