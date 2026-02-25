@@ -1,19 +1,17 @@
-import { useEffect, useRef, useState } from "react";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import { MessageSquare } from "lucide-react";
 
 export default function ChatWindow({ messages, isTyping, liveTranscript }) {
-  const bottomRef = useRef(null);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+  // Show only last 5 messages to keep page static and fixed
+  const MAX_VISIBLE_MESSAGES = 5;
+  const visibleMessages = messages.slice(-MAX_VISIBLE_MESSAGES);
+  const hiddenCount = messages.length - MAX_VISIBLE_MESSAGES;
 
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-transparent">
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 space-y-5">
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col justify-between">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 space-y-5 w-full">
           {/* Empty State */}
           {messages.length === 0 && !liveTranscript && (
             <div className="flex min-h-[60vh] flex-col items-center justify-center text-center space-y-6 animate-in">
@@ -34,8 +32,15 @@ export default function ChatWindow({ messages, isTyping, liveTranscript }) {
             </div>
           )}
             
-          {/* Messages */}
-          {messages.map((msg, index) => (
+          {/* Hidden Messages Counter */}
+          {hiddenCount > 0 && (
+            <div className="text-center text-xs text-gray-500 py-2">
+              ↑ {hiddenCount} earlier messages (hidden - fixed view)
+            </div>
+          )}
+
+          {/* Messages - Only Last 5 Visible */}
+          {visibleMessages.map((msg, index) => (
             <MessageBubble key={index} message={msg} index={index} />
           ))}
 
@@ -45,8 +50,6 @@ export default function ChatWindow({ messages, isTyping, liveTranscript }) {
           )}
 
           {isTyping && <TypingIndicator />}
-
-          <div ref={bottomRef} />
         </div>
       </div>
     </div>
