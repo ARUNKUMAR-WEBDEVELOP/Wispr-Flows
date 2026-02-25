@@ -437,6 +437,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
   return (
     <>
       <style>{`
+        /* Enhanced Animations */
         @keyframes wave {
           0%, 60%, 100% { transform: scaleY(0.5); }
           30% { transform: scaleY(1); }
@@ -450,124 +451,203 @@ export default function VoiceAgentButton({ onResponseReceived }) {
           50% { transform: scale(1.05); opacity: 1; }
         }
         @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
         }
-        .animate-in {
-          animation: fadeIn 0.3s ease-out;
-        }
-        .slide-in-from-bottom-2 {
-          animation: slideInBottom 0.3s ease-out;
+        @keyframes slideUp {
+          from { 
+            opacity: 0; 
+            transform: translateY(40px) scale(0.96);
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0) scale(1);
+          }
         }
         @keyframes slideInBottom {
-          from { opacity: 0; transform: translateY(8px); }
+          from { opacity: 0; transform: translateY(12px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes shimmer {
+          0% { background-position: -1000px 0; }
+          100% { background-position: 1000px 0; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-6px); }
+        }
+        @keyframes glow {
+          0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.4); }
+          50% { box-shadow: 0 0 30px rgba(168, 85, 247, 0.6), 0 0 40px rgba(168, 85, 247, 0.3); }
+        }
+        .animate-in {
+          animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .modal-enter {
+          animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .slide-in-from-bottom-2 {
+          animation: slideInBottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .float-animation {
+          animation: float 3s ease-in-out infinite;
+        }
+        .glow-animation {
+          animation: glow 2s ease-in-out infinite;
+        }
+        /* Modern Glass Effect */
+        .glass-panel {
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(16px) saturate(180%);
+          -webkit-backdrop-filter: blur(16px) saturate(180%);
+          border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+        .dark .glass-panel {
+          background: rgba(17, 24, 39, 0.95);
+          border: 1px solid rgba(75, 85, 99, 0.3);
+        }
         .voice-ring {
-          width: 150px;
-          height: 150px;
+          width: 160px;
+          height: 160px;
           border-radius: 9999px;
           background: conic-gradient(
-            #7c3aed,
-            #22d3ee,
-            #a855f7,
+            from 0deg,
+            #8b5cf6,
+            #ec4899,
+            #06b6d4,
             #10b981,
-            #7c3aed
+            #f59e0b,
+            #8b5cf6
           );
-          filter: drop-shadow(0 0 12px rgba(124, 58, 237, 0.5));
+          filter: drop-shadow(0 8px 32px rgba(139, 92, 246, 0.4));
         }
         .voice-ring-active {
-          animation: ringSpin 4s linear infinite;
+          animation: ringSpin 6s linear infinite;
         }
         .voice-ring-core {
           position: absolute;
-          width: 76px;
-          height: 76px;
+          width: 84px;
+          height: 84px;
           border-radius: 9999px;
-          background: radial-gradient(circle at 30% 30%, #1f2937, #0f172a);
+          background: radial-gradient(circle at 35% 35%, #4c1d95, #1e1b4b);
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.4);
+          box-shadow: 
+            inset 0 0 20px rgba(0, 0, 0, 0.5),
+            0 4px 24px rgba(139, 92, 246, 0.3);
         }
         .voice-ring-core-active {
-          animation: ringPulse 1.2s ease-in-out infinite;
+          animation: ringPulse 1.5s ease-in-out infinite;
+        }
+        .gradient-border {
+          position: relative;
+          background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1));
+        }
+        .gradient-border::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          border-radius: inherit;
+          padding: 1px;
+          background: linear-gradient(135deg, #8b5cf6, #ec4899);
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
         }
       `}</style>
 
-      {/* Voice Agent Button */}
+      {/* Voice Agent Button - Enhanced */}
       <button
         onClick={openModal}
-        className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all duration-300 flex-1 sm:flex-none bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:from-purple-700 hover:to-purple-600 shadow-lg hover:shadow-purple-500/40 active:scale-95"
+        className="group relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 flex-1 sm:flex-none bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 text-white hover:shadow-2xl hover:shadow-purple-500/50 active:scale-95 overflow-hidden"
         title="Open Voice Agent"
       >
-        <MessageCircle className="w-5 h-5" />
-        <span className="hidden sm:inline">Voice Agent</span>
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
+        <MessageCircle className="w-5 h-5 relative z-10 group-hover:scale-110 transition-transform duration-300" />
+        <span className="hidden sm:inline relative z-10">Voice Agent</span>
+        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
       </button>
 
-      {/* Modal */}
+      {/* Modal - Enhanced with Glassmorphism */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="fixed inset-0 bg-gradient-to-br from-purple-900/40 via-black/50 to-pink-900/40 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in">
+          <div className="glass-panel rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden modal-enter border-2 border-purple-500/20">
             
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 dark:from-gray-800 to-purple-100 dark:to-gray-900">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Voice Agent</h2>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Powered by Deepgram & Gemini</p>
+            {/* Header - Enhanced Gradient */}
+            <div className="relative flex items-center justify-between p-6 border-b border-purple-200/30 dark:border-purple-500/20 bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 animate-pulse"></div>
+              <div className="relative z-10">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <span className="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50"></span>
+                  Voice Agent
+                </h2>
+                <p className="text-xs text-purple-100 mt-1 font-medium">✨ Powered by Deepgram & Gemini</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 relative z-10">
                 {conversations.length > 0 && (
                   <button
                     onClick={handleExportConversation}
-                    className="p-2 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-colors"
+                    className="p-2.5 hover:bg-white/25 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-110 active:scale-95"
                     title="Export conversation"
                   >
-                    <Download className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    <Download className="w-4 h-4 text-white drop-shadow-lg" />
                   </button>
                 )}
                 <button
                   onClick={() => setShowSettings(!showSettings)}
-                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  className="p-2.5 hover:bg-white/25 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-110 hover:rotate-90 active:scale-95"
                   title="Settings"
                 >
-                  <Settings className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                  <Settings className="w-4 h-4 text-white drop-shadow-lg" />
                 </button>
                 <button
                   onClick={closeModal}
-                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  className="p-2.5 hover:bg-red-500/30 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-110 active:scale-95"
                 >
-                  <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <X className="w-5 h-5 text-white drop-shadow-lg" />
                 </button>
               </div>
             </div>
 
-            {/* Settings Panel */}
+            {/* Settings Panel - Enhanced */}
             {showSettings && (
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-purple-50 dark:bg-purple-900/10 space-y-3">
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 block">
-                    Voice Speed: {voiceSpeed.toFixed(1)}x
+              <div className="p-5 border-b border-purple-200/30 dark:border-purple-500/20 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-purple-900/20 space-y-4 animate-in backdrop-blur-sm">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-purple-700 dark:text-purple-300 mb-1 flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <Volume2 className="w-3.5 h-3.5" />
+                      Voice Speed
+                    </span>
+                    <span className="px-2 py-0.5 bg-purple-600 text-white rounded-full text-[10px] font-mono">{voiceSpeed.toFixed(1)}x</span>
                   </label>
-                  <input
-                    type="range"
-                    min="0.5"
-                    max="2.0"
-                    step="0.1"
-                    value={voiceSpeed}
-                    onChange={(e) => setVoiceSpeed(parseFloat(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  />
+                  <div className="relative">
+                    <input
+                      type="range"
+                      min="0.5"
+                      max="2.0"
+                      step="0.1"
+                      value={voiceSpeed}
+                      onChange={(e) => setVoiceSpeed(parseFloat(e.target.value))}
+                      className="w-full h-2.5 bg-gradient-to-r from-purple-200 to-pink-200 dark:from-purple-900 dark:to-pink-900 rounded-full appearance-none cursor-pointer slider"
+                      style={{
+                        background: `linear-gradient(to right, rgb(147 51 234) 0%, rgb(147 51 234) ${(voiceSpeed - 0.5) / 1.5 * 100}%, rgb(226 232 240) ${(voiceSpeed - 0.5) / 1.5 * 100}%, rgb(226 232 240) 100%)`
+                      }}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 block">
-                    <Languages className="w-3 h-3 inline mr-1" />
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-purple-700 dark:text-purple-300 mb-1 flex items-center gap-2">
+                    <Languages className="w-3.5 h-3.5" />
                     Language
                   </label>
                   <select
                     value={selectedLanguage}
                     onChange={(e) => setSelectedLanguage(e.target.value)}
-                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-purple-200 dark:border-purple-700 rounded-xl text-sm font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all cursor-pointer hover:border-purple-400 shadow-sm"
                   >
                     <option value="en">English (US)</option>
                     <option value="en-GB">English (UK)</option>
@@ -587,34 +667,45 @@ export default function VoiceAgentButton({ onResponseReceived }) {
             {/* Conversation Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {conversations.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center gap-6">
-                  <VoiceRing isActive={isListening} />
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                <div className="h-full flex flex-col items-center justify-center text-center gap-8">
+                  <div className="relative">
+                    <VoiceRing isActive={isListening} />
+                    {isListening && (
+                      <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-purple-600 text-white text-xs font-bold rounded-full shadow-lg animate-pulse">
+                        Listening...
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                       Talk to your agent
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xs">
-                      Speak naturally and get answers in real time.
+                    <p className="text-sm text-gray-600 dark:text-gray-300 max-w-xs leading-relaxed">
+                      ✨ Speak naturally and get instant answers with AI-powered voice assistance
                     </p>
                   </div>
                   <button
                     onClick={isListening ? handleStopListening : handleStartListening}
-                    className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+                    className={`group relative px-8 py-3 rounded-xl font-bold transition-all duration-300 overflow-hidden ${
                       isListening
-                        ? "bg-red-600 text-white hover:bg-red-700"
-                        : "bg-gray-200 text-gray-900 hover:bg-gray-300"
+                        ? "bg-gradient-to-r from-red-600 to-red-500 text-white hover:shadow-2xl hover:shadow-red-500/50 hover:scale-105 active:scale-95"
+                        : "bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 text-white hover:shadow-2xl hover:shadow-purple-500/50 hover:scale-105 active:scale-95"
                     }`}
                   >
-                    {isListening ? "Stop" : "Talk To Your Agent"}
+                    <span className="relative z-10 flex items-center gap-2">
+                      <Mic className="w-5 h-5" />
+                      {isListening ? "Stop Listening" : "Start Conversation"}
+                    </span>
+                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                   </button>
                 </div>
               ) : (
                 <>
                   {conversations.map((msg) => (
-                    <div key={msg.id} className="flex items-start gap-3 group">
+                    <div key={msg.id} className="flex items-start gap-3 group animate-in slide-in-from-bottom-2">
                       {msg.role !== "user" && (
-                        <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">A</span>
+                        <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/50 ring-2 ring-white/20 float-animation">
+                          <span className="text-white text-sm font-bold">AI</span>
                         </div>
                       )}
                       <div className="flex-1">
@@ -624,21 +715,21 @@ export default function VoiceAgentButton({ onResponseReceived }) {
                             content={msg.content}
                           />
                           {msg.role !== "user" && (
-                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
                               <button
                                 onClick={() => handleReplay(msg.id)}
-                                className="flex-shrink-0 p-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors"
+                                className="flex-shrink-0 p-2 rounded-lg bg-purple-100 dark:bg-purple-900/40 hover:bg-purple-200 dark:hover:bg-purple-800/60 transition-all duration-300 hover:scale-110 active:scale-95"
                                 title="Replay audio"
                               >
                                 <RotateCcw className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                               </button>
                               <button
                                 onClick={() => handleCopy(msg.content, msg.id)}
-                                className="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                className="flex-shrink-0 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 hover:scale-110 active:scale-95"
                                 title="Copy response"
                               >
                                 {copiedId === msg.id ? (
-                                  <span className="text-xs text-green-600 dark:text-green-400 px-1">✓</span>
+                                  <span className="text-xs text-green-600 dark:text-green-400 px-1 font-bold">✓</span>
                                 ) : (
                                   <Copy className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                                 )}
@@ -671,43 +762,56 @@ export default function VoiceAgentButton({ onResponseReceived }) {
               )}
             </div>
 
-            {/* Voice Input Section */}
+            {/* Voice Input Section - Enhanced */}
             {isListening && (
-              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-purple-50 dark:bg-purple-900/20">
+              <div className="px-6 py-5 border-t border-purple-200/30 dark:border-purple-500/20 bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 dark:from-purple-900/30 dark:via-pink-900/30 dark:to-purple-900/30 backdrop-blur-sm animate-in">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-purple-700 dark:text-purple-300 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    Recording Audio
+                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Speak clearly...</span>
+                </div>
                 <AnimatedWaveform isActive={true} />
               </div>
             )}
 
-            {/* Audio Playback Controls */}
+            {/* Audio Playback Controls - Enhanced */}
             {isPlaying && currentPlayingId && (
-              <div className="px-6 py-3 border-t border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
+              <div className="px-6 py-4 border-t border-purple-200/30 dark:border-purple-500/20 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 backdrop-blur-sm animate-in">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Volume2 className="w-4 h-4 text-purple-600 dark:text-purple-400 animate-pulse" />
-                    <span className="text-xs font-medium text-purple-600 dark:text-purple-400">Playing response...</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg glow-animation">
+                      <Volume2 className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-bold text-purple-700 dark:text-purple-300 block">Playing Response</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Speed: {voiceSpeed.toFixed(1)}x</span>
+                    </div>
                   </div>
                   <button
                     onClick={handlePlayPause}
-                    className="p-2 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-colors"
+                    className="p-2.5 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-xl transition-all duration-300 hover:scale-110 active:scale-95"
                     title="Pause"
                   >
-                    <Pause className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    <Pause className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Footer with Controls */}
-            <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+            {/* Footer with Controls - Enhanced */}
+            <div className="p-6 border-t border-purple-200/30 dark:border-purple-500/20 bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30 dark:from-gray-900 dark:via-purple-900/10 dark:to-pink-900/10 backdrop-blur-sm">
               <div className="flex gap-3">
                 {isListening ? (
                   <>
                     <button
                       onClick={handleStopListening}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors active:scale-95"
+                      className="group relative flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-xl font-bold hover:shadow-2xl hover:shadow-red-500/50 transition-all duration-300 hover:scale-[1.02] active:scale-95 overflow-hidden"
                     >
-                      <Mic className="w-4 h-4" />
-                      Stop Listening
+                      <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-red-300 opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
+                      <Mic className="w-5 h-5 relative z-10" />
+                      <span className="relative z-10">Stop Listening</span>
                     </button>
                   </>
                 ) : (
@@ -715,17 +819,18 @@ export default function VoiceAgentButton({ onResponseReceived }) {
                     <button
                       onClick={handleStartListening}
                       disabled={isProcessing}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-purple-600 transition-colors disabled:opacity-50 active:scale-95"
+                      className="group relative flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 text-white rounded-xl font-bold hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
                     >
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl"></div>
                       {isProcessing ? (
                         <>
-                          <Loader className="w-4 h-4 animate-spin" />
-                          Processing...
+                          <Loader className="w-5 h-5 animate-spin relative z-10" />
+                          <span className="relative z-10">Processing...</span>
                         </>
                       ) : (
                         <>
-                          <Mic className="w-4 h-4" />
-                          Start Listening
+                          <Mic className="w-5 h-5 relative z-10" />
+                          <span className="relative z-10">Start Listening</span>
                         </>
                       )}
                     </button>
