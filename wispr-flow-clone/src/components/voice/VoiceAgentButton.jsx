@@ -616,13 +616,13 @@ export default function VoiceAgentButton({ onResponseReceived }) {
       {/* Modal - Premium Glassmorphism Design */}
       {showModal && (
         <div 
-          className="fixed inset-0 bg-gradient-to-br from-purple-900/35 via-black/55 to-pink-900/35 backdrop-blur-xl flex items-center justify-center z-[9999] p-3 sm:p-6 animate-in"
+          className="fixed inset-0 bg-gradient-to-br from-purple-900/35 via-black/55 to-pink-900/35 backdrop-blur-xl flex items-stretch sm:items-center justify-center z-[9999] p-0 sm:p-6 animate-in"
           onClick={(e) => e.target === e.currentTarget && closeModal()}
         >
-          <div className="glass-panel rounded-2xl sm:rounded-3xl shadow-2xl w-full h-[92dvh] sm:h-[88dvh] max-w-none sm:max-w-4xl flex flex-col overflow-hidden modal-enter border border-purple-500/30 animate-slide-in">
+          <div className="glass-panel rounded-none sm:rounded-3xl shadow-2xl w-full h-full sm:h-[88dvh] max-w-none sm:max-w-4xl flex flex-col overflow-hidden modal-enter border border-purple-500/30 animate-slide-in">
             
             {/* Header - Premium Design */}
-            <div className="relative flex items-center justify-between p-6 border-b border-white/20 bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 overflow-hidden shadow-2xl">
+            <div className="relative flex items-center justify-between p-6 border-b border-white/20 bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 overflow-hidden shadow-2xl shrink-0">
               {/* Animated background */}
               <div className="absolute inset-0 bg-gradient-to-r from-purple-400/30 to-pink-400/30 animate-pulse"></div>
               <div className="absolute inset-0 opacity-20">
@@ -677,7 +677,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
 
             {/* Settings Panel - Enhanced */}
             {showSettings && (
-              <div className="p-5 border-b border-purple-200/30 dark:border-purple-500/20 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-purple-900/20 space-y-4 animate-in backdrop-blur-sm">
+              <div className="p-5 border-b border-purple-200/30 dark:border-purple-500/20 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-purple-900/20 space-y-4 animate-in backdrop-blur-sm shrink-0">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-purple-700 dark:text-purple-300 mb-1 flex items-center justify-between">
                     <span className="flex items-center gap-2">
@@ -727,7 +727,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
             )}
 
             {/* Conversation Area */}
-            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 no-scrollbar">
+            <div className="flex-1 min-h-0 overflow-hidden p-5 sm:p-6 space-y-4">
               {conversations.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center gap-8">
                   <div className="relative">
@@ -826,7 +826,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
 
             {/* Voice Input Section - Enhanced */}
             {isListening && (
-              <div className="px-6 py-5 border-t border-purple-200/30 dark:border-purple-500/20 bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 dark:from-purple-900/30 dark:via-pink-900/30 dark:to-purple-900/30 backdrop-blur-sm animate-in">
+              <div className="px-6 py-5 border-t border-purple-200/30 dark:border-purple-500/20 bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 dark:from-purple-900/30 dark:via-pink-900/30 dark:to-purple-900/30 backdrop-blur-sm animate-in shrink-0">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-bold text-purple-700 dark:text-purple-300 flex items-center gap-2">
                     <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
@@ -840,7 +840,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
 
             {/* Audio Playback Controls - Enhanced */}
             {isPlaying && currentPlayingId && (
-              <div className="px-6 py-4 border-t border-purple-200/30 dark:border-purple-500/20 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 backdrop-blur-sm animate-in">
+              <div className="px-6 py-4 border-t border-purple-200/30 dark:border-purple-500/20 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 backdrop-blur-sm animate-in shrink-0">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg glow-animation">
@@ -863,7 +863,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
             )}
 
             {/* Footer with Controls - Enhanced */}
-            <div className="p-6 border-t border-purple-200/30 dark:border-purple-500/20 bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30 dark:from-gray-900 dark:via-purple-900/10 dark:to-pink-900/10 backdrop-blur-sm">
+            <div className="p-6 border-t border-purple-200/30 dark:border-purple-500/20 bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30 dark:from-gray-900 dark:via-purple-900/10 dark:to-pink-900/10 backdrop-blur-sm shrink-0">
               <div className="flex gap-3">
                 {isListening ? (
                   <>
