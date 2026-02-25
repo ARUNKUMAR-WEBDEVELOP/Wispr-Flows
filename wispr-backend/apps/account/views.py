@@ -21,28 +21,41 @@ def get_tokens_for_user(user):
         "access": str(refresh.access_token),
     }
 
-@api_view(["POST"])
+@api_view(["POST", "OPTIONS"])
 @permission_classes([AllowAny])
 def google_login(request):
     """
     Google OAuth login endpoint.
     Expects: { "token": "google_id_token" }
     """
+    # Handle preflight requests
+    if request.method == "OPTIONS":
+        return Response(status=200)
+
     try:
+        print(f"[Google Login] Received request from origin: {request.META.get('HTTP_ORIGIN', 'unknown')}")
+        
         serializer = GoogleAuthSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            print(f"[Google Login] Serializer validation failed: {serializer.errors}")
+            return Response(
+                {"error": f"Invalid request data: {serializer.errors}"},
+                status=400
+            )
 
         token = serializer.validated_data["token"]
 
         # Verify Google ID token
         try:
+            print("[Google Login] Verifying Google token...")
             idinfo = id_token.verify_oauth2_token(
                 token,
                 requests.Request()
             )
+            print("[Google Login] Token verified successfully")
         except ValueError as e:
             # Token verification failed
-            print(f"Token verification error: {e}")
+            print(f"[Google Login] Token verification error: {e}")
             return Response(
                 {"error": f"Invalid Google token: {str(e)}"},
                 status=401
@@ -52,6 +65,8 @@ def google_login(request):
         email = idinfo.get("email")
         name = idinfo.get("name", "")
         picture = idinfo.get("picture", "")
+        
+        print(f"[Google Login] User info - Email: {email}, Name: {name}")
         
         # Validate required fields
         if not email:
@@ -71,13 +86,18 @@ def google_login(request):
                 }
             )
             
+            print(f"[Google Login] User {'created' if created else 'retrieved'}: {email}")
+            
             # Update user info if it changed
-            if not created:
+            if not created and user.first_name != name:
                 user.first_name = name
                 user.save()
+                print(f"[Google Login] User info updated")
 
         except Exception as e:
-            print(f"User creation error: {e}")
+            print(f"[Google Login] User creation error: {e}")
+            import traceback
+            traceback.print_exc()
             return Response(
                 {"error": f"Failed to create/update user: {str(e)}"},
                 status=500
@@ -85,8 +105,9 @@ def google_login(request):
 
         # Generate tokens
         tokens = get_tokens_for_user(user)
+        print(f"[Google Login] Tokens generated for user: {email}")
 
-        return Response({
+        response_data = {
             "user": {
                 "id": user.id,
                 "email": user.email,
@@ -94,10 +115,18 @@ def google_login(request):
                 "avatar": picture
             },
             "tokens": tokens
-        }, status=200)
+        }
+        
+        return Response(response_data, status=200)
         
     except Exception as e:
-        print(f"Unexpected error in google_login: {e}")
+        print(f"[Google Login] Unexpected error: {e}")
+        import traceback
+        traceback.print_exc()
+        return Response(
+            {"error": f"Server error: {str(e)}"},
+            status=500
+        )
         import traceback
         traceback.print_exc()
         return Response(

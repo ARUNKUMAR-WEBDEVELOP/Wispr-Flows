@@ -57,26 +57,54 @@ MIDDLEWARE = [
 # --------------------
 # CORS (Frontend Access)
 # --------------------
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_HEADERS = list(default_headers) + [
-    "authorization",
-    "x-csrftoken",
+# Explicitly allow specific origins for better control
+CORS_ALLOWED_ORIGINS = [
+    "https://arunkumar-webdevelop.github.io",
+    "https://wispr-flows-3adt.onrender.com",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
-CORS_ALLOW_METHODS = list(default_methods)
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
 CORS_EXPOSE_HEADERS = [
     "Content-Type",
     "X-CSRFToken",
+    "Authorization",
 ]
+
 CSRF_TRUSTED_ORIGINS = [
     "https://arunkumar-webdevelop.github.io",
     "https://wispr-flows-3adt.onrender.com",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
 
 # Allow Google OAuth popup
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
+SECURE_CROSS_ORIGIN_EMBEDDER_POLICY = "require-corp"
 
 # --------------------
 # URL / WSGI / ASGI

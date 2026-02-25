@@ -40,15 +40,20 @@ export async function getUserProfile() {
 export async function googleLogin(googleToken) {
   // Send Google ID token to backend for verification and JWT generation
   try {
+    console.log("[Auth] Attempting Google login...");
+    
     const res = await fetch(`${API_BASE}/auth/google/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include", // Important for CORS with credentials
       body: JSON.stringify({
         token: googleToken,
       }),
     });
+
+    console.log("[Auth] Google login response status:", res.status);
 
     // Try to parse as JSON
     let data;
@@ -57,23 +62,27 @@ export async function googleLogin(googleToken) {
     } catch (jsonError) {
       // If JSON parsing fails, the response is HTML (error page)
       const text = await res.text();
-      console.error("Backend returned non-JSON response:", text);
-      throw new Error("Backend server error. Check console for details.");
+      console.error("[Auth] Backend returned non-JSON response:", text.substring(0, 200));
+      throw new Error("Backend server error. Check network tab for details.");
     }
 
     if (!res.ok) {
-      throw new Error(data.error || "Google login failed");
+      console.error("[Auth] Login error:", data);
+      throw new Error(data.error || data.detail || "Google login failed");
     }
 
     // Store tokens
     if (data.tokens) {
       localStorage.setItem("access_token", data.tokens.access);
       localStorage.setItem("refresh_token", data.tokens.refresh);
+      console.log("[Auth] Login successful, tokens stored");
+    } else {
+      throw new Error("No tokens received from backend");
     }
     
     return data;
   } catch (err) {
-    console.error("Google login error:", err);
+    console.error("[Auth] Google login error:", err.message);
     throw err;
   }
 }
