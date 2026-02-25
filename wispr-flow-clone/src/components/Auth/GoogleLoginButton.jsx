@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FcGoogle } from "react-icons/fc";
 import Button from "../UI/Button";
 import { googleLogin } from "../../services/auth.service";
@@ -10,15 +10,45 @@ export default function GoogleLoginButton({ onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [googleReady, setGoogleReady] = useState(false);
+  const googleButtonRef = useRef(null);
+  const hasRenderedRef = useRef(false);
 
   useEffect(() => {
-    // Initialize Google Sign-In
-    if (window.google) {
+    let attempts = 0;
+    const initGoogle = () => {
+      if (!window.google) return false;
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: handleCredentialResponse,
       });
-    }
+
+      if (!hasRenderedRef.current && googleButtonRef.current) {
+        window.google.accounts.id.renderButton(googleButtonRef.current, {
+          theme: "outline",
+          size: "large",
+          text: "signin_with",
+        });
+        hasRenderedRef.current = true;
+      }
+
+      setGoogleReady(true);
+      return true;
+    };
+
+    if (initGoogle()) return;
+
+    const timer = setInterval(() => {
+      attempts += 1;
+      if (initGoogle() || attempts > 20) {
+        clearInterval(timer);
+        if (attempts > 20) {
+          setError("Google SDK failed to load. Check your network or ad blocker.");
+        }
+      }
+    }, 250);
+
+    return () => clearInterval(timer);
   }, []);
 
   const handleCredentialResponse = async (response) => {
@@ -43,13 +73,18 @@ export default function GoogleLoginButton({ onSuccess }) {
   };
 
   const handleGoogleClick = () => {
-    if (window.google) {
-      // Render the Google Sign-In button
-      window.google.accounts.id.renderButton(
-        document.getElementById("google-signin-button"),
-        { theme: "outline", size: "large", text: "signin_with" }
-      );
+    if (!window.google || !googleReady) {
+      setError("Google SDK not ready yet. Please try again.");
+      return;
     }
+
+    const button = googleButtonRef.current?.querySelector("div[role='button'], button");
+    if (button) {
+      button.click();
+      return;
+    }
+
+    window.google.accounts.id.prompt();
   };
 
   return (
@@ -73,7 +108,11 @@ export default function GoogleLoginButton({ onSuccess }) {
         </div>
       )}
       
-      <div id="google-signin-button" className="hidden"></div>
+      <div
+        ref={googleButtonRef}
+        className="absolute left-[-9999px] top-[-9999px] opacity-0"
+        aria-hidden="true"
+      ></div>
       
       <Button
         onClick={handleGoogleClick}
