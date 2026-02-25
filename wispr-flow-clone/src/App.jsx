@@ -341,7 +341,7 @@ export default function App() {
   };
 
   return (
-    <div className="relative min-h-[100dvh] bg-[#07080f] text-white overflow-x-hidden">
+    <div className="fixed inset-0 bg-[#07080f] text-white overflow-x-hidden">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-32 -left-20 h-96 w-96 rounded-full bg-purple-600/20 blur-[120px]"></div>
         <div className="absolute -bottom-32 right-0 h-[28rem] w-[28rem] rounded-full bg-pink-500/15 blur-[140px]"></div>

@@ -124,7 +124,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
   const audioUrlsRef = useRef({}); // Store audio URLs for replay
 
   // Keep only last N messages to prevent modal overflow
-  const MAX_VISIBLE_MESSAGES = 50;
+  const MAX_VISIBLE_MESSAGES = 0;
   const displayedConversations = conversations.slice(-MAX_VISIBLE_MESSAGES);
   const hasMoreMessages = conversations.length > MAX_VISIBLE_MESSAGES;
 
@@ -618,10 +618,10 @@ export default function VoiceAgentButton({ onResponseReceived }) {
         <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
       </button>
 
-      {/* Modal - Premium Glassmorphism Design - Top Center & Compact */}
+      {/* Modal - Premium Glassmorphism Design - Centered with Transparent Overlay */}
       {showModal && (
         <div 
-          className="fixed inset-0 bg-gradient-to-br from-purple-900/35 via-black/55 to-pink-900/35 backdrop-blur-xl flex items-start justify-center pt-12 z-[9999] p-4 animate-in overflow-y-auto"
+          className="fixed inset-0 bg-gradient-to-br from-purple-900/35 via-black/55 to-pink-900/35 backdrop-blur-xl flex items-center justify-center z-[9999] p-4 animate-in"
           onClick={(e) => e.target === e.currentTarget && closeModal()}
         >
           <div className="glass-panel rounded-3xl shadow-2xl w-full h-auto max-h-[65vh] max-w-lg flex flex-col overflow-hidden modal-enter border border-purple-500/30 animate-slide-in">
