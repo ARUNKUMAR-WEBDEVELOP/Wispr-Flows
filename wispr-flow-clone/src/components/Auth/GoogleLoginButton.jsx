@@ -21,6 +21,9 @@ export default function GoogleLoginButton({ onSuccess }) {
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: handleCredentialResponse,
+        ux_mode: "popup",
+        auto_select: false,
+        itp_support: true,
       });
 
       if (!hasRenderedRef.current && googleButtonRef.current) {
@@ -81,7 +84,6 @@ export default function GoogleLoginButton({ onSuccess }) {
     const button = googleButtonRef.current?.querySelector("div[role='button'], button");
     if (button) {
       button.click();
-      return;
     }
 
     window.google.accounts.id.prompt();
