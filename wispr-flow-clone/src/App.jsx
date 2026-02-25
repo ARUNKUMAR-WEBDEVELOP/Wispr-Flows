@@ -341,7 +341,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/40 to-gray-900 text-white overflow-x-hidden">
+    <div className="flex min-h-[100dvh] bg-gradient-to-br from-gray-900 via-purple-900/40 to-gray-900 text-white overflow-x-hidden">
       {/* Sidebar for desktop, drawer for mobile/tablet */}
       {/* Hamburger menu for mobile/tablet */}
       <button
@@ -373,7 +373,7 @@ export default function App() {
         />
       )}
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col relative min-w-0 w-full">
+      <div className="flex-1 min-h-0 flex flex-col relative min-w-0 w-full">
         <Header authenticated={authenticated} user={user} onLogin={() => { setShowModal(true); setLoginStep("login"); }} />
         <AnimatePresence>
           {showModal && (

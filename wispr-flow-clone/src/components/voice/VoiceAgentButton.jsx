@@ -497,14 +497,14 @@ export default function VoiceAgentButton({ onResponseReceived }) {
         }
         /* Modern Glass Effect */
         .glass-panel {
-          background: rgba(255, 255, 255, 0.95);
+          background: rgba(255, 255, 255, 0.88);
           backdrop-filter: blur(16px) saturate(180%);
           -webkit-backdrop-filter: blur(16px) saturate(180%);
-          border: 1px solid rgba(255, 255, 255, 0.8);
+          border: 1px solid rgba(255, 255, 255, 0.65);
         }
         .dark .glass-panel {
-          background: rgba(17, 24, 39, 0.95);
-          border: 1px solid rgba(75, 85, 99, 0.3);
+          background: rgba(17, 24, 39, 0.86);
+          border: 1px solid rgba(75, 85, 99, 0.35);
         }
         .voice-ring {
           width: 160px;
@@ -589,7 +589,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
       {/* Modal - Premium Glassmorphism Design */}
       {showModal && (
         <div 
-          className="fixed inset-0 bg-gradient-to-br from-purple-900/50 via-black/70 to-pink-900/50 backdrop-blur-lg flex items-center justify-center z-[9999] p-4 animate-in overflow-y-auto"
+          className="fixed inset-0 bg-gradient-to-br from-purple-900/35 via-black/50 to-pink-900/35 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in overflow-y-auto"
           onClick={(e) => e.target === e.currentTarget && closeModal()}
         >
           <div className="glass-panel rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] my-auto flex flex-col overflow-hidden modal-enter border-2 border-purple-500/30 animate-slide-in">
