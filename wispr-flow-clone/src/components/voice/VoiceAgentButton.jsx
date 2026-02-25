@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, Mic, X, Send, Loader, Volume2, Copy } from "lucide-react";
+import { MessageCircle, Mic, X, Send, Loader, Volume2, Copy, Download, Pause, Play, RotateCcw, Settings, Languages } from "lucide-react";
 import { getVoiceAgentResponse } from "../../services/voice-agent.service";
 import { textToSpeech } from "../../services/tts.service";
 import { useVoiceWebSocket } from "../../hooks/useVoiceWebSocket";
@@ -107,6 +107,13 @@ export default function VoiceAgentButton({ onResponseReceived }) {
   const [error, setError] = useState("");
   const [copiedId, setCopiedId] = useState(null);
   
+  // Enhanced features
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [voiceSpeed, setVoiceSpeed] = useState(1.0);
+  const [selectedLanguage, setSelectedLanguage] = useState("en");
+  const [showSettings, setShowSettings] = useState(false);
+  const [currentPlayingId, setCurrentPlayingId] = useState(null);
+  
   const audioRef = useRef(null);
   const finalTranscriptRef = useRef("");
   const interimTranscriptRef = useRef("");
@@ -114,6 +121,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
   const workletNodeRef = useRef(null);
   const streamRef = useRef(null);
   const conversationsEndRef = useRef(null);
+  const audioUrlsRef = useRef({}); // Store audio URLs for replay
 
   // Deepgram WebSocket hook
   const ws = useVoiceWebSocket((data) => {
@@ -150,7 +158,14 @@ export default function VoiceAgentButton({ onResponseReceived }) {
     }
 
     setTranscript(finalTranscriptRef.current);
-  }, { path: "voice-agent" });
+  }, { path: "voice-agent", maxReconnectAttempts: 3, reconnectDelay: 2000 });
+
+  // Update error state from WebSocket
+  useEffect(() => {
+    if (ws.error) {
+      setError(ws.error);
+    }
+  }, [ws.error]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -166,32 +181,43 @@ export default function VoiceAgentButton({ onResponseReceived }) {
     setError("");
 
     try {
-      // Add user message
+      // Add user message with timestamp
       setConversations(prev => [...prev, {
         id: Date.now(),
         role: "user",
-        content: textToSend
+        content: textToSend,
+        timestamp: new Date().toISOString()
       }]);
 
       // Get LLM response
       const response = await getVoiceAgentResponse(textToSend);
       
-      // Add agent response
+      // Create unique message ID
+      const agentMessageId = Date.now() + Math.floor(Math.random() * 1000);
+      
+      // Add agent response with timestamp
       setConversations(prev => [...prev, {
-        id: Date.now() + 1,
+        id: agentMessageId,
         role: "agent",
-        content: response.text
+        content: response.text,
+        timestamp: new Date().toISOString()
       }]);
 
-      // Convert to speech
-      const audioUrl = await textToSpeech(response.text, "en");
+      // Convert to speech with selected language and speed
+      const audioUrl = await textToSpeech(response.text, selectedLanguage);
       
-      // Play audio
+      // Store audio URL for replay
+      audioUrlsRef.current[agentMessageId] = audioUrl;
+      
+      // Play audio with speed control
       if (audioRef.current) {
         audioRef.current.src = audioUrl;
+        audioRef.current.playbackRate = voiceSpeed;
         audioRef.current.play().catch(err => 
           console.error("[Voice Agent] Playback error:", err)
         );
+        setIsPlaying(true);
+        setCurrentPlayingId(agentMessageId);
       }
 
       // Notify parent
@@ -225,9 +251,22 @@ export default function VoiceAgentButton({ onResponseReceived }) {
       setTranscript("");
       setInterimTranscript("");
 
-      // Connect WebSocket
+      // Connect WebSocket with error handling
       ws.connect();
+      
+      // Wait for connection with timeout
+      const connectionTimeout = setTimeout(() => {
+        if (!ws.connected) {
+          throw new Error("WebSocket connection timeout. Please check your network.");
+        }
+      }, 5000);
+      
       await new Promise(resolve => setTimeout(resolve, 500));
+      clearTimeout(connectionTimeout);
+      
+      if (!ws.connected) {
+        throw new Error("Failed to establish WebSocket connection");
+      }
 
       // Get microphone access
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -321,12 +360,70 @@ export default function VoiceAgentButton({ onResponseReceived }) {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  // Audio playback controls
+  const handlePlayPause = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().catch(err => console.error("Playback error:", err));
+      setIsPlaying(true);
+    }
+  };
+
+  const handleReplay = (messageId) => {
+    const audioUrl = audioUrlsRef.current[messageId];
+    if (!audioUrl || !audioRef.current) return;
+    
+    audioRef.current.src = audioUrl;
+    audioRef.current.playbackRate = voiceSpeed;
+    audioRef.current.play().catch(err => console.error("Replay error:", err));
+    setIsPlaying(true);
+    setCurrentPlayingId(messageId);
+  };
+
+  // Export conversation history
+  const handleExportConversation = () => {
+    const exportData = {
+      exportDate: new Date().toISOString(),
+      conversations: conversations.map(msg => ({
+        role: msg.role,
+        content: msg.content,
+        timestamp: msg.timestamp || new Date().toISOString()
+      }))
+    };
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `voice-agent-conversation-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Handle audio ended event
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setCurrentPlayingId(null);
+    };
+
+    audio.addEventListener("ended", handleEnded);
+    return () => audio.removeEventListener("ended", handleEnded);
+  }, []);
+
   const openModal = () => {
     setShowModal(true);
     setConversations([]);
     setTranscript("");
     setInterimTranscript("");
     setError("");
+    ws.resetConnection(); // Reset any previous connection state
   };
 
   const closeModal = () => {
@@ -334,6 +431,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
     if (isListening) {
       handleStopListening();
     }
+    ws.resetConnection(); // Clean up connection
   };
 
   return (
@@ -418,13 +516,73 @@ export default function VoiceAgentButton({ onResponseReceived }) {
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">Voice Agent</h2>
                 <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Powered by Deepgram & Gemini</p>
               </div>
-              <button
-                onClick={closeModal}
-                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              </button>
+              <div className="flex items-center gap-2">
+                {conversations.length > 0 && (
+                  <button
+                    onClick={handleExportConversation}
+                    className="p-2 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-colors"
+                    title="Export conversation"
+                  >
+                    <Download className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  title="Settings"
+                >
+                  <Settings className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                </button>
+                <button
+                  onClick={closeModal}
+                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                </button>
+              </div>
             </div>
+
+            {/* Settings Panel */}
+            {showSettings && (
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-purple-50 dark:bg-purple-900/10 space-y-3">
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 block">
+                    Voice Speed: {voiceSpeed.toFixed(1)}x
+                  </label>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="2.0"
+                    step="0.1"
+                    value={voiceSpeed}
+                    onChange={(e) => setVoiceSpeed(parseFloat(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 block">
+                    <Languages className="w-3 h-3 inline mr-1" />
+                    Language
+                  </label>
+                  <select
+                    value={selectedLanguage}
+                    onChange={(e) => setSelectedLanguage(e.target.value)}
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="en">English (US)</option>
+                    <option value="en-GB">English (UK)</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                    <option value="it">Italian</option>
+                    <option value="pt">Portuguese</option>
+                    <option value="ja">Japanese</option>
+                    <option value="ko">Korean</option>
+                    <option value="zh">Chinese</option>
+                  </select>
+                </div>
+              </div>
+            )}
 
             {/* Conversation Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -453,7 +611,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
               ) : (
                 <>
                   {conversations.map((msg) => (
-                    <div key={msg.id} className="flex items-start gap-3">
+                    <div key={msg.id} className="flex items-start gap-3 group">
                       {msg.role !== "user" && (
                         <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
                           <span className="text-white text-xs font-bold">A</span>
@@ -466,13 +624,26 @@ export default function VoiceAgentButton({ onResponseReceived }) {
                             content={msg.content}
                           />
                           {msg.role !== "user" && (
-                            <button
-                              onClick={() => handleCopy(msg.content, msg.id)}
-                              className="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors opacity-0 group-hover:opacity-100 hover:opacity-100 mt-1"
-                              title="Copy response"
-                            >
-                              <Copy className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                            </button>
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => handleReplay(msg.id)}
+                                className="flex-shrink-0 p-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors"
+                                title="Replay audio"
+                              >
+                                <RotateCcw className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                              </button>
+                              <button
+                                onClick={() => handleCopy(msg.content, msg.id)}
+                                className="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                title="Copy response"
+                              >
+                                {copiedId === msg.id ? (
+                                  <span className="text-xs text-green-600 dark:text-green-400 px-1">✓</span>
+                                ) : (
+                                  <Copy className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                                )}
+                              </button>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -504,6 +675,25 @@ export default function VoiceAgentButton({ onResponseReceived }) {
             {isListening && (
               <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-purple-50 dark:bg-purple-900/20">
                 <AnimatedWaveform isActive={true} />
+              </div>
+            )}
+
+            {/* Audio Playback Controls */}
+            {isPlaying && currentPlayingId && (
+              <div className="px-6 py-3 border-t border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Volume2 className="w-4 h-4 text-purple-600 dark:text-purple-400 animate-pulse" />
+                    <span className="text-xs font-medium text-purple-600 dark:text-purple-400">Playing response...</span>
+                  </div>
+                  <button
+                    onClick={handlePlayPause}
+                    className="p-2 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-colors"
+                    title="Pause"
+                  >
+                    <Pause className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </button>
+                </div>
               </div>
             )}
 
