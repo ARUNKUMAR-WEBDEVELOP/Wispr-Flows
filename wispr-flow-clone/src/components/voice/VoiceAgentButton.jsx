@@ -618,10 +618,10 @@ export default function VoiceAgentButton({ onResponseReceived }) {
         <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
       </button>
 
-      {/* Modal - Premium Glassmorphism Design - Perfectly Centered */}
+      {/* Modal - Premium Glassmorphism Design - Top Positioned */}
       {showModal && (
         <div 
-          className="fixed inset-0 bg-gradient-to-br from-purple-900/35 via-black/55 to-pink-900/35 backdrop-blur-xl flex items-center justify-center z-[9999] p-4 animate-in"
+          className="fixed inset-0 bg-gradient-to-br from-purple-900/35 via-black/55 to-pink-900/35 backdrop-blur-xl flex items-start justify-center  p-4 pt-8 sm:pt-16 animate-in"
           onClick={(e) => e.target === e.currentTarget && closeModal()}
         >
           <div className="glass-panel rounded-3xl shadow-2xl w-full max-w-2xl h-auto max-h-[80dvh] flex flex-col overflow-hidden modal-enter border border-purple-500/30 animate-slide-in">
