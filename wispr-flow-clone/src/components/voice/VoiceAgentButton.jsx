@@ -640,8 +640,8 @@ export default function VoiceAgentButton({ onResponseReceived }) {
                 </button>
                 <button
                   onClick={closeModal}
-                  className="p-2.5 bg-white/10 hover:bg-red-500/50 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg group\"
-                  title=\"Close\"
+                  className="p-2.5 bg-white/10 hover:bg-red-500/50 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg group"
+                  title="Close"
                 >
                   <X className="w-5 h-5 text-white drop-shadow-lg group-hover:rotate-90 transition-transform duration-300" />
                 </button>
@@ -739,7 +739,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
                   {conversations.map((msg) => (
                     <div key={msg.id} className="flex items-start gap-3 group animate-in slide-in-from-bottom-2">
                       {msg.role !== "user" && (
-                        <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/50 ring-2 ring-white/20 float-animation">
+                        <div className="shrink-0 w-10 h-10 bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/50 ring-2 ring-white/20 float-animation">
                           <span className="text-white text-sm font-bold">AI</span>
                         </div>
                       )}
@@ -753,14 +753,14 @@ export default function VoiceAgentButton({ onResponseReceived }) {
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
                               <button
                                 onClick={() => handleReplay(msg.id)}
-                                className="flex-shrink-0 p-2 rounded-lg bg-purple-100 dark:bg-purple-900/40 hover:bg-purple-200 dark:hover:bg-purple-800/60 transition-all duration-300 hover:scale-110 active:scale-95"
+                                className="shrink-0 p-2 rounded-lg bg-purple-100 dark:bg-purple-900/40 hover:bg-purple-200 dark:hover:bg-purple-800/60 transition-all duration-300 hover:scale-110 active:scale-95"
                                 title="Replay audio"
                               >
                                 <RotateCcw className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                               </button>
                               <button
                                 onClick={() => handleCopy(msg.content, msg.id)}
-                                className="flex-shrink-0 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 hover:scale-110 active:scale-95"
+                                className="shrink-0 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 hover:scale-110 active:scale-95"
                                 title="Copy response"
                               >
                                 {copiedId === msg.id ? (

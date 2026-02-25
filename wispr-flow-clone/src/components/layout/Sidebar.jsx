@@ -85,7 +85,7 @@ export default function Sidebar({ sessions, activeSession, onSelect, onNewChat, 
               whileTap={{ scale: 0.98 }}
             >
               <div className="flex items-center gap-2">
-                <MessageSquare size={16} className="flex-shrink-0" />
+                <MessageSquare size={16} className="shrink-0" />
                 <span className="text-sm font-medium truncate">
                   {session.title || "Untitled Conversation"}
                 </span>

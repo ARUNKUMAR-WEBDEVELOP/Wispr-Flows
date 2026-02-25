@@ -33,7 +33,7 @@ export default function MessageBubble({ message, index = 0 }) {
     >
       {/* Avatar */}
       {!isUser && (
-        <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/50 ring-2 ring-white/20 float-animation">
+        <div className="shrink-0 w-10 h-10 bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/50 ring-2 ring-white/20 float-animation">
           <Bot className="w-5 h-5 text-white" strokeWidth={2} />
         </div>
       )}
@@ -69,7 +69,7 @@ export default function MessageBubble({ message, index = 0 }) {
       
       {/* Avatar for user */}
       {isUser && (
-        <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-500 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/50 ring-2 ring-white/20">
+        <div className="shrink-0 w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-500 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/50 ring-2 ring-white/20">
           <User className="w-5 h-5 text-white" strokeWidth={2} />
         </div>
       )}
