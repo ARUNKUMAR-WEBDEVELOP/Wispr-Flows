@@ -31,6 +31,7 @@ export default function ChatWindow({ messages, isTyping, liveTranscript }) {
               </p>
             </div>
           </div>
+        )}
           
         {/* Messages */}
         {messages.map((msg, index) => (
