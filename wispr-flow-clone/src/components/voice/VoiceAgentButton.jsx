@@ -618,13 +618,13 @@ export default function VoiceAgentButton({ onResponseReceived }) {
         <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
       </button>
 
-      {/* Modal - Premium Glassmorphism Design - Centered & Fixed Size */}
+      {/* Modal - Premium Glassmorphism Design - Perfectly Centered */}
       {showModal && (
         <div 
-          className="fixed inset-0 bg-gradient-to-br from-purple-900/35 via-black/55 to-pink-900/35 backdrop-blur-xl flex items-center justify-center z-[9999] p-4 animate-in overflow-hidden"
+          className="fixed inset-0 bg-gradient-to-br from-purple-900/35 via-black/55 to-pink-900/35 backdrop-blur-xl flex items-center justify-center z-[9999] p-4 animate-in"
           onClick={(e) => e.target === e.currentTarget && closeModal()}
         >
-          <div className="glass-panel rounded-3xl shadow-2xl w-full max-w-xl h-auto max-h-[70vh] flex flex-col overflow-hidden modal-enter border border-purple-500/30 animate-slide-in">
+          <div className="glass-panel rounded-3xl shadow-2xl w-full max-w-2xl h-auto max-h-[80dvh] flex flex-col overflow-hidden modal-enter border border-purple-500/30 animate-slide-in">
             
             {/* Header - Premium Design */}
             <div className="relative flex items-center justify-between p-6 border-b border-white/20 bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 overflow-hidden shadow-2xl shrink-0">
@@ -732,7 +732,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
             )}
 
             {/* Conversation Area */}
-            <div className="flex-1 min-h-0 max-h-[35vh] overflow-hidden p-5 sm:p-6 space-y-4">
+            <div className="flex-1 min-h-0 overflow-hidden p-5 sm:p-6 space-y-4">
               {conversations.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center gap-8">
                   <div className="relative">
