@@ -6,12 +6,30 @@
 
 html, body, #root {
   height: 100%;
+  width: 100%;
 }
 
 body {
+  min-height: 100dvh;
   background: linear-gradient(to bottom right, #0f0f23, #1a0a2e, #0f0f23);
   color: #e5e5e5;
   font-family: "Space Grotesk", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 ::-webkit-scrollbar {
@@ -111,6 +129,32 @@ body {
   }
 }
 
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rotate-3d {
+  0% { transform: perspective(1000px) rotateY(0deg); }
+  100% { transform: perspective(1000px) rotateY(360deg); }
+}
+
+@keyframes scale-pulse {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
 @keyframes shimmer {
   0% { 
     transform: translateX(-100%); 
@@ -140,7 +184,15 @@ body {
   animation: slideIn 0.4s ease-out;
 }
 
+.animate-in {
+  animation: slideIn 0.5s ease-out;
+}
+
 .float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-float {
   animation: float 3s ease-in-out infinite;
 }
 
@@ -164,12 +216,140 @@ body {
   animation: pulse-slow 3s ease-in-out infinite;
 }
 
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+.animate-rotate-3d {
+  animation: rotate-3d 10s linear infinite;
+}
+
+.animate-scale-pulse {
+  animation: scale-pulse 2s ease-in-out infinite;
+}
+
+.animate-gradient-shift {
+  animation: gradient-shift 3s ease infinite;
+  background-size: 200% 200%;
+}
+
+/* 3D Transform Utilities */
+.transform-gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* Performance Optimizations */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
 /* Glassmorphism */
 .glass {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Enhanced Glass Panel - Premium Frosted Effect */
+.glass-panel {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.04) 100%);
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 8px 32px 0 rgba(31, 38, 135, 0.37),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Modal Backdrop Blur Enhancement */
+.modal-backdrop {
+  background: radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.15), transparent 50%),
+              radial-gradient(circle at 70% 70%, rgba(236, 72, 153, 0.15), transparent 50%),
+              linear-gradient(to bottom, rgba(139, 92, 246, 0.08), rgba(236, 72, 153, 0.08));
+  backdrop-filter: blur(25px) saturate(150%);
+  -webkit-backdrop-filter: blur(25px) saturate(150%);
+}
+
+/* Gradient Border Effect */
+.gradient-border {
+  position: relative;
+  background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+  background-clip: padding-box;
+  border: 1px solid transparent;
+  background-origin: border-box;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(139, 92, 246, 0.4),
+    rgba(236, 72, 153, 0.4),
+    rgba(139, 92, 246, 0.4));
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gradient-border:hover::before {
+  opacity: 1;
+}
+
+/* Depth Shadow - Layered Effect */
+.depth-shadow {
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 8px 16px rgba(0, 0, 0, 0.15),
+    0 20px 40px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Subtle Glow Effect */
+.glow-effect {
+  box-shadow: 
+    0 0 20px rgba(139, 92, 246, 0.3),
+    0 0 40px rgba(236, 72, 153, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Premium Modal Styling */
+.premium-modal {
+  background: linear-gradient(135deg,
+    rgba(15, 23, 42, 0.8) 0%,
+    rgba(30, 27, 75, 0.6) 50%,
+    rgba(15, 23, 42, 0.8) 100%);
+  backdrop-filter: blur(30px) saturate(200%);
+  -webkit-backdrop-filter: blur(30px) saturate(200%);
+  box-shadow: 
+    0 8px 32px 0 rgba(31, 38, 135, 0.37),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 4px 0 rgba(0, 0, 0, 0.3),
+    0 0 30px rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 /* Gradient Text */

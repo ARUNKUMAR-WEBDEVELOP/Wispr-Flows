@@ -2,7 +2,7 @@ import { Mic, User, Sparkles } from "lucide-react";
 
 export default function Header({ authenticated, onLogin, user }) {
   return (
-    <header className="border-b border-purple-500/20 bg-gradient-to-r from-gray-900 via-purple-900/20 to-gray-900 backdrop-blur-xl shadow-lg">
+    <header className="border-b border-white/10 bg-gradient-to-r from-slate-950/80 via-purple-950/30 to-slate-950/80 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {/* Title */}
@@ -11,7 +11,7 @@ export default function Header({ authenticated, onLogin, user }) {
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold tracking-tight text-white">Wispr Flow</h1>
+              <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-white">Wispr Flow</h1>
               <p className="text-xs text-gray-400">AI Voice Assistant</p>
             </div>
           </div>

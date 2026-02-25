@@ -341,7 +341,12 @@ export default function App() {
   };
 
   return (
-    <div className="flex min-h-[100dvh] bg-gradient-to-br from-gray-900 via-purple-900/40 to-gray-900 text-white overflow-x-hidden">
+    <div className="relative min-h-[100dvh] bg-[#07080f] text-white overflow-x-hidden">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-32 -left-20 h-96 w-96 rounded-full bg-purple-600/20 blur-[120px]"></div>
+        <div className="absolute -bottom-32 right-0 h-[28rem] w-[28rem] rounded-full bg-pink-500/15 blur-[140px]"></div>
+      </div>
+      <div className="relative z-10 flex min-h-[100dvh]">
       {/* Sidebar for desktop, drawer for mobile/tablet */}
       {/* Hamburger menu for mobile/tablet */}
       <button
@@ -500,6 +505,7 @@ export default function App() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

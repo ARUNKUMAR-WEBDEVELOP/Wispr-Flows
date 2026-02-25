@@ -8,7 +8,7 @@ export default function Sidebar({ sessions, activeSession, onSelect, onNewChat, 
   // Responsive: show as drawer on mobile/tablet
   return (
     <motion.div
-      className={`fixed md:static top-0 left-0 z-50 md:z-auto h-full w-80 bg-gradient-to-b from-gray-900 via-gray-900 to-purple-900/20 border-r border-purple-500/20 flex flex-col backdrop-blur-xl transition-transform duration-300 shadow-2xl ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
+      className={`fixed md:static top-0 left-0 z-50 md:z-auto h-full w-80 bg-gradient-to-b from-slate-950/90 via-slate-950/80 to-purple-950/30 border-r border-white/10 flex flex-col backdrop-blur-2xl transition-transform duration-300 shadow-2xl ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
       initial={{ x: -100 }}
       animate={{ x: open || window.innerWidth >= 768 ? 0 : -320 }}
       exit={{ x: -100 }}
@@ -24,7 +24,7 @@ export default function Sidebar({ sessions, activeSession, onSelect, onNewChat, 
       </button>
       
       {/* Logo */}
-      <div className="p-6 border-b border-purple-500/20 bg-gradient-to-r from-purple-600/10 to-pink-600/10">
+      <div className="p-6 border-b border-white/10 bg-gradient-to-r from-purple-600/10 to-pink-600/10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/50">
             <Sparkles className="w-6 h-6 text-white" />
@@ -61,7 +61,7 @@ export default function Sidebar({ sessions, activeSession, onSelect, onNewChat, 
       {/* Chat History Tab */}
       {activeTab === "history" && (
         <div className="flex-1 overflow-y-auto px-4 pb-4">
-          <div className="bg-gray-900/40 border border-purple-500/20 rounded-2xl p-3 shadow-lg shadow-purple-900/10">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-3 shadow-lg shadow-purple-900/10">
             <div className="flex items-center justify-between px-1 mb-3">
               <div className="text-xs font-semibold text-purple-300 flex items-center gap-2">
                 <MessageSquare size={14} />

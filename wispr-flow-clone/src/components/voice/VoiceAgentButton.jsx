@@ -434,6 +434,26 @@ export default function VoiceAgentButton({ onResponseReceived }) {
     ws.resetConnection(); // Clean up connection
   };
 
+  useEffect(() => {
+    if (!showModal) return;
+    document.body.classList.add("modal-open");
+    return () => document.body.classList.remove("modal-open");
+  }, [showModal]);
+
+  useEffect(() => {
+    if (!showModal) return;
+    const { body, documentElement } = document;
+    const prevBodyOverflow = body.style.overflow;
+    const prevDocOverflow = documentElement.style.overflow;
+    body.style.overflow = "hidden";
+    documentElement.style.overflow = "hidden";
+
+    return () => {
+      body.style.overflow = prevBodyOverflow;
+      documentElement.style.overflow = prevDocOverflow;
+    };
+  }, [showModal]);
+
   return (
     <>
       <style>{`
@@ -558,6 +578,13 @@ export default function VoiceAgentButton({ onResponseReceived }) {
           -webkit-mask-composite: xor;
           mask-composite: exclude;
         }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
       `}</style>
 
       {/* Voice Agent Button - Premium Design */}
@@ -589,10 +616,10 @@ export default function VoiceAgentButton({ onResponseReceived }) {
       {/* Modal - Premium Glassmorphism Design */}
       {showModal && (
         <div 
-          className="fixed inset-0 bg-gradient-to-br from-purple-900/35 via-black/50 to-pink-900/35 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in overflow-y-auto"
+          className="fixed inset-0 bg-gradient-to-br from-purple-900/35 via-black/55 to-pink-900/35 backdrop-blur-xl flex items-center justify-center z-[9999] p-3 sm:p-6 animate-in"
           onClick={(e) => e.target === e.currentTarget && closeModal()}
         >
-          <div className="glass-panel rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] my-auto flex flex-col overflow-hidden modal-enter border-2 border-purple-500/30 animate-slide-in">
+          <div className="glass-panel rounded-2xl sm:rounded-3xl shadow-2xl w-full h-[92dvh] sm:h-[88dvh] max-w-none sm:max-w-4xl flex flex-col overflow-hidden modal-enter border border-purple-500/30 animate-slide-in">
             
             {/* Header - Premium Design */}
             <div className="relative flex items-center justify-between p-6 border-b border-white/20 bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 overflow-hidden shadow-2xl">
@@ -700,7 +727,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
             )}
 
             {/* Conversation Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 no-scrollbar">
               {conversations.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center gap-8">
                   <div className="relative">

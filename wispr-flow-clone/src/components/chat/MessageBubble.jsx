@@ -45,8 +45,8 @@ export default function MessageBubble({ message, index = 0 }) {
           isUser
             ? "bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 text-white rounded-br-sm shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 hover:scale-[1.02]"
             : temp
-            ? "bg-purple-100/50 dark:bg-purple-900/20 text-gray-700 dark:text-gray-300 border-2 border-purple-300 dark:border-purple-700 border-dashed rounded-bl-sm"
-            : "bg-white/80 dark:bg-gray-800/80 text-gray-900 dark:text-gray-100 border border-purple-200/50 dark:border-purple-700/30 rounded-bl-sm shadow-md hover:shadow-lg hover:border-purple-300 dark:hover:border-purple-600"
+            ? "bg-purple-500/10 text-purple-100 border border-purple-400/30 border-dashed rounded-bl-sm"
+            : "bg-white/10 text-gray-100 border border-white/10 rounded-bl-sm shadow-md hover:shadow-lg hover:border-white/20"
         }`}
       >
         {/* Shimmer effect for user messages */}
