@@ -38,16 +38,16 @@ jobs:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Configure npm registry
-        run: npm config set registry https://registry.npmjs.org/
+      - name: Configure npm registry mirror
+        run: |
+          npm config set registry https://registry.npmmirror.com/
+          npm config set @types:registry https://registry.npmmirror.com/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Clean install dependencies
-        run: |
-          rm -rf node_modules package-lock.json
-          npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
 
       - name: Build
         run: npm run build
