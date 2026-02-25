@@ -732,7 +732,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
             )}
 
             {/* Conversation Area */}
-            <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-5 sm:p-6 space-y-4">
+            <div className="flex-1 min-h-0 overflow-hidden p-5 sm:p-6 space-y-4">
               {conversations.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center gap-8">
                   <div className="relative">

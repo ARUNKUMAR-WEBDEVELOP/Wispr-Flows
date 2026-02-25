@@ -12,7 +12,7 @@ export default function ChatWindow({ messages, isTyping, liveTranscript }) {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-transparent">
-      <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar">
+      <div className="flex-1 min-h-0 overflow-hidden">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 space-y-5">
           {/* Empty State */}
           {messages.length === 0 && !liveTranscript && (
