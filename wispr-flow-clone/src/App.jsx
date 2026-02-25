@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useVoiceWebSocket } from "./hooks/useVoiceWebSocket";
 import Sidebar from "./components/layout/Sidebar";
-import { Menu } from "lucide-react";
+import { Menu, Sparkles } from "lucide-react";
 import Header from "./components/layout/Header";
 import VoiceButton from "./components/voice/VoiceButton";
 import VoiceAgentButton from "./components/voice/VoiceAgentButton";
@@ -341,15 +341,15 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 text-white">
+    <div className="flex h-screen bg-gradient-to-br from-gray-900 via-purple-900/10 to-gray-900 text-white overflow-hidden">
       {/* Sidebar for desktop, drawer for mobile/tablet */}
       {/* Hamburger menu for mobile/tablet */}
       <button
-        className="md:hidden fixed top-4 left-4 z-50 bg-gray-800 p-2 rounded-lg shadow-lg"
+        className="md:hidden fixed top-4 left-4 z-50 bg-gradient-to-br from-purple-600 to-purple-500 p-3 rounded-xl shadow-2xl shadow-purple-500/50 hover:scale-110 active:scale-95 transition-all duration-300 backdrop-blur-sm"
         onClick={() => setSidebarOpen(true)}
         aria-label="Open sidebar"
       >
-        <Menu size={24} />
+        <Menu size={24} className="text-white" />
       </button>
       {/* Sidebar: show as drawer on mobile/tablet, static on desktop */}
       <div>
@@ -368,7 +368,7 @@ export default function App() {
       {/* Overlay for mobile sidebar */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-40 md:hidden"
+          className="fixed inset-0 bg-gradient-to-br from-purple-900/40 via-black/60 to-pink-900/40 backdrop-blur-sm z-40 md:hidden animate-in"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -378,34 +378,41 @@ export default function App() {
         <AnimatePresence>
           {showModal && (
             <motion.div
-              className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50"
+              className="fixed inset-0 bg-gradient-to-br from-purple-900/50 via-black/70 to-pink-900/50 backdrop-blur-md flex items-center justify-center z-50 p-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
               <motion.div
-                className="bg-white text-gray-900 rounded-lg p-8 shadow-lg w-full max-w-md"
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.8 }}
+                className="bg-gradient-to-br from-white via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20 text-gray-900 dark:text-white rounded-3xl p-8 shadow-2xl w-full max-w-md border-2 border-purple-200/50 dark:border-purple-500/30 backdrop-blur-xl"
+                initial={{ scale: 0.8, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.8, y: 20 }}
               >
-                <h2 className="text-2xl font-bold mb-4">Welcome to Wispr Flow</h2>
-                <div className="flex flex-col gap-4">
+                <div className="text-center mb-6">
+                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-purple-500/50 float-animation">
+                    <Sparkles className="w-8 h-8 text-white" />
+                  </div>
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">Welcome to Wispr Flow</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Your AI-powered voice assistant</p>
+                </div>
+                <div className="flex flex-col gap-3">
                   <button
-                    className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500 transition"
+                    className="group relative px-6 py-3 bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:shadow-xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-[1.02] active:scale-95 overflow-hidden"
                     onClick={() => setLoginStep("login")}
                   >
-                    Login
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
+                    <span className="relative z-10">Login with Google</span>
                   </button>
                   <button
-                    className="px-4 py-2 bg-gray-200 text-gray-900 rounded hover:bg-gray-300 transition"
+                    className="px-6 py-3 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-700 rounded-xl font-medium hover:bg-white/70 dark:hover:bg-gray-800/70 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 hover:scale-[1.02] active:scale-95"
                     onClick={handleSkip}
                   >
-                    Skip
+                    Continue Without Login
                   </button>
                 </div>
                 {loginStep === "login" && (
-                  <div className="mt-6">
+                  <div className="mt-6 animate-slide-in">
                     <GoogleLoginButton onSuccess={handleLogin} />
                   </div>
                 )}
@@ -414,63 +421,56 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        {/* Live transcript streaming UI */}
-        {listening && liveTranscript && (
-          <div
-            className="live-transcript-streaming"
-            style={{
-              position: 'fixed',
-              bottom: window.innerWidth < 640 ? 80 : 120,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              background: 'rgba(0,0,0,0.85)',
-              color: '#fff',
-              padding: window.innerWidth < 640 ? '0.5rem 1rem' : '1rem 2rem',
-              borderRadius: '2rem',
-              fontSize: window.innerWidth < 640 ? '1rem' : '1.25rem',
-              zIndex: 1000,
-              boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
-              animation: 'fadeIn 0.3s',
-              maxWidth: '98vw',
-              textAlign: 'center',
-              pointerEvents: 'none',
-            }}
-          >
-            <span style={{ fontWeight: 600, letterSpacing: 0.5 }}>{liveTranscript}</span>
-          </div>
-        )}
-
         {/* Chat window */}
-        <ChatWindow messages={messages} isTyping={aiStreaming} />
+        <ChatWindow messages={messages} isTyping={aiStreaming} liveTranscript={listening ? liveTranscript : null} />
 
-        <div className="p-2 sm:p-4 border-t border-gray-700 flex flex-col gap-2 sm:gap-3">
-          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-            <VoiceButton
-              listening={listening}
-              onStart={handleStartVoice}
-              onStop={handleStopVoice}
-            />
-            <VoiceAgentButton
-              onResponseReceived={(response) => {
-                setMessages((prev) => [...prev, { role: "assistant", content: response, streaming: false }]);
-              }}
-            />
-            <input
-              type="text"
-              value={listening ? liveTranscript : inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSendText()}
-              placeholder="Type your message..."
-              className="flex-1 p-2 text-base rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-indigo-500 w-full sm:w-auto"
-              disabled={listening}
-            />
-            <button
-              onClick={handleSendText}
-              disabled={aiStreaming}
-              className="px-4 py-2 text-base bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-lg w-full sm:w-auto"
-            >
-              Send
-            </button>
+        {/* Modern Input Area */}
+        <div className="p-4 sm:p-6 border-t border-purple-500/20 bg-gradient-to-r from-gray-900/95 via-purple-900/20 to-gray-900/95 backdrop-blur-xl">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              {/* Voice Buttons */}
+              <div className="flex gap-2 w-full sm:w-auto">
+                <VoiceButton
+                  listening={listening}
+                  onStart={handleStartVoice}
+                  onStop={handleStopVoice}
+                />
+                <VoiceAgentButton
+                  onResponseReceived={(response) => {
+                    setMessages((prev) => [...prev, { role: "assistant", content: response, streaming: false }]);
+                  }}
+                />
+              </div>
+              
+              {/* Input Field */}
+              <div className="relative flex-1 w-full sm:w-auto">
+                <input
+                  type="text"
+                  value={listening ? liveTranscript : inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && handleSendText()}
+                  placeholder="Type your message or use voice..."
+                  className="w-full px-5 py-3 text-base rounded-xl bg-white/10 backdrop-blur-sm border-2 border-purple-500/30 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 text-white placeholder-gray-400 transition-all duration-300"
+                  disabled={listening}
+                />
+                {listening && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-1">
+                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                    <span className="text-xs text-red-400 font-medium">Listening...</span>
+                  </div>
+                )}
+              </div>
+              
+              {/* Send Button */}
+              <button
+                onClick={handleSendText}
+                disabled={aiStreaming || !inputText.trim()}
+                className="group relative px-6 py-3 text-base bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 hover:shadow-xl hover:shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-95 w-full sm:w-auto overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
+                <span className="relative z-10">{aiStreaming ? "Sending..." : "Send"}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

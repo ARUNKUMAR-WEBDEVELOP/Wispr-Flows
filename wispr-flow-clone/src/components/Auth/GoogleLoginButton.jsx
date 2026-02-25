@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
 import Button from "../UI/Button";
 import { googleLogin } from "../../services/auth.service";
+import { Loader, CheckCircle, AlertCircle } from "lucide-react";
 
 const GOOGLE_CLIENT_ID = "987489441994-teokvsru5bvq88tut2j18fidjohikub5.apps.googleusercontent.com";
 
 export default function GoogleLoginButton({ onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     // Initialize Google Sign-In
@@ -28,7 +30,10 @@ export default function GoogleLoginButton({ onSuccess }) {
       const data = await googleLogin(response.credential);
       
       console.log("Login successful:", data);
-      onSuccess?.(data);
+      setSuccess(true);
+      setTimeout(() => {
+        onSuccess?.(data);
+      }, 800);
     } catch (err) {
       setError(err.message || "Login failed");
       console.error("Login error:", err);
@@ -48,22 +53,50 @@ export default function GoogleLoginButton({ onSuccess }) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-4 w-full max-w-sm">
       {error && (
-        <div className="text-red-400 text-sm text-center bg-red-900/20 p-2 rounded max-w-xs">
-          ⚠️ {error}
+        <div className="w-full p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-center backdrop-blur-sm animate-shake">
+          <div className="flex items-center justify-center gap-2 text-red-400 mb-2">
+            <AlertCircle size={20} />
+            <span className="font-semibold text-sm">Login Failed</span>
+          </div>
+          <p className="text-sm text-red-300">{error}</p>
         </div>
       )}
       
-      <div id="google-signin-button"></div>
+      {success && (
+        <div className="w-full p-4 bg-green-500/10 border border-green-500/30 rounded-xl text-center backdrop-blur-sm animate-bounce-once">
+          <div className="flex items-center justify-center gap-2 text-green-400">
+            <CheckCircle size={20} />
+            <span className="font-semibold text-sm">Login Successful!</span>
+          </div>
+        </div>
+      )}
+      
+      <div id="google-signin-button" className="hidden"></div>
       
       <Button
         onClick={handleGoogleClick}
         loading={loading}
-        className="gap-2"
+        className="gap-3 w-full"
+        variant="google"
       >
-        <FcGoogle size={20} />
-        {loading ? "Signing in..." : "Sign in with Google"}
+        {loading ? (
+          <>
+            <Loader size={20} className="animate-spin" />
+            <span>Signing in...</span>
+          </>
+        ) : success ? (
+          <>
+            <CheckCircle size={20} />
+            <span>Signed in!</span>
+          </>
+        ) : (
+          <>
+            <FcGoogle size={24} />
+            <span>Sign in with Google</span>
+          </>
+        )}
       </Button>
     </div>
   );
