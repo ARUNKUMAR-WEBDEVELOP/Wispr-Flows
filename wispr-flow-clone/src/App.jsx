@@ -395,7 +395,7 @@ export default function App() {
         />
       )}
       {/* Main chat area */}
-      <div className="flex-1 min-h-0 flex flex-col relative min-w-0 w-full">
+      <div className="flex-1 min-h-0 flex flex-col relative min-w-0 w-full overflow-hidden">
         <Header authenticated={authenticated} user={user} onLogin={() => { setShowModal(true); setLoginStep("login"); }} />
         <AnimatePresence>
           {showModal && (
@@ -448,8 +448,8 @@ export default function App() {
 
         {/* Voice Agent Settings Panel */}
         {isVoiceAgentActive && (
-          <div className="relative p-4 sm:p-6 border-t border-blue-400/30 bg-gradient-to-br from-blue-900/20 via-cyan-900/20 to-blue-900/20 backdrop-blur-xl">
-            <div className="max-w-4xl mx-auto">
+          <div className="relative flex-shrink-0 p-4 sm:p-6 border-t border-blue-400/30 bg-gradient-to-br from-blue-900/20 via-cyan-900/20 to-blue-900/20 backdrop-blur-xl overflow-hidden max-h-[45vh]">
+            <div className="max-w-4xl mx-auto h-full overflow-hidden">
               <VoiceAgentButton
                 onAddMessage={handleAddMessage}
                 messages={messages}
@@ -461,7 +461,7 @@ export default function App() {
         )}
 
         {/* Premium Input Area with Gradient Background */}
-        <div className="relative p-4 sm:p-6 border-t border-purple-500/30 bg-gradient-to-br from-gray-900/95 via-purple-900/30 to-pink-900/20 backdrop-blur-xl shadow-2xl">
+        <div className="relative flex-shrink-0 p-4 sm:p-6 border-t border-purple-500/30 bg-gradient-to-br from-gray-900/95 via-purple-900/30 to-pink-900/20 backdrop-blur-xl shadow-2xl">
           {/* Animated gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-purple-600/10 opacity-50"></div>
           <div className="absolute top-0 left-1/4 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-float"></div>
