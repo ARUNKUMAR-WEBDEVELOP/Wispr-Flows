@@ -24,8 +24,11 @@ export default function App() {
   });
   const [authenticated, setAuthenticated] = useState(() => !!localStorage.getItem("access_token"));
   const [sessions, setSessions] = useState([]);
-  const [activeSession, setActiveSession] = useState(null);
-  const [messages, setMessages] = useState([]);
+  const [activeSession, setActiveSession] = useState(() => localStorage.getItem("activeSession") || null);
+  const [messages, setMessages] = useState(() => {
+    const stored = localStorage.getItem("guestChat");
+    return stored && !localStorage.getItem("access_token") ? JSON.parse(stored) : [];
+  });
   const [inputText, setInputText] = useState("");
   const [aiStreaming, setAiStreaming] = useState(false);
   const [listening, setListening] = useState(false);
@@ -235,15 +238,42 @@ export default function App() {
     }
   };
 
+  // Load chat history on mount or when authenticated status changes
   useEffect(() => {
     if (authenticated) {
       fetchChatHistory().then(sessions => {
-        setSessions(sessions);
+        setSessions(sessions || []);
+        // Try to restore previously active session
+        const savedSessionId = localStorage.getItem("activeSession");
         if (Array.isArray(sessions) && sessions.length > 0) {
-          setActiveSession(sessions[0].session_id);
-          setMessages(sessions[0].messages.map(m => ({ ...m, streaming: false })));
+          const targetSession = sessions.find(s => s.session_id === savedSessionId) || sessions[0];
+          setActiveSession(targetSession.session_id);
+          localStorage.setItem("activeSession", targetSession.session_id);
+          // Fetch messages for this session
+          fetchSessionMessages(targetSession.session_id).then(msgs => {
+            setMessages((msgs || []).map(m => ({ ...m, streaming: false })));
+          }).catch(err => {
+            console.error("Error loading messages:", err);
+            setMessages([]);
+          });
         }
+      }).catch(err => {
+        console.error("Error loading chat history:", err);
+        setSessions([]);
+        setMessages([]);
       });
+    } else {
+      // Load guest chat from localStorage
+      const stored = localStorage.getItem("guestChat");
+      if (stored) {
+        try {
+          setMessages(JSON.parse(stored));
+          setActiveSession("guest");
+        } catch (e) {
+          console.error("Error parsing guest chat:", e);
+          localStorage.removeItem("guestChat");
+        }
+      }
     }
   }, [authenticated]);
 
@@ -258,13 +288,23 @@ export default function App() {
       setShowModal(false);
       localStorage.setItem("access_token", data.tokens.access);
       localStorage.setItem("refresh_token", data.tokens.refresh || "");
+      localStorage.removeItem("guestChat");
     }
-    // Fetch sessions
-    const sessions = await fetchChatHistory();
-    setSessions(sessions);
-    if (Array.isArray(sessions) && sessions.length > 0) {
-      setActiveSession(sessions[0].session_id);
-      setMessages(sessions[0].messages.map(m => ({ ...m, streaming: false })));
+    try {
+      // Fetch sessions
+      const sessions = await fetchChatHistory();
+      setSessions(sessions || []);
+      if (Array.isArray(sessions) && sessions.length > 0) {
+        const targetSession = sessions[0];
+        setActiveSession(targetSession.session_id);
+        localStorage.setItem("activeSession", targetSession.session_id);
+        // Fetch messages for this session
+        const messages = await fetchSessionMessages(targetSession.session_id);
+        setMessages((messages || []).map(m => ({ ...m, streaming: false })));
+      }
+    } catch (error) {
+      console.error("Error during login session fetch:", error);
+      setMessages([]);
     }
   };
 
@@ -275,27 +315,42 @@ export default function App() {
 
   const handleNewChat = async () => {
     if (authenticated) {
-      // Create new session in backend
-      const session = await createChatSession();
-      // Fetch the full session object (with messages, title, etc.)
-      const [latestSessions, messages] = await Promise.all([
-        fetchChatHistory(),
-        fetchSessionMessages(session.session_id)
-      ]);
-      setSessions(latestSessions);
-      setActiveSession(session.session_id);
-      setMessages(messages.map(m => ({ ...m, streaming: false })));
+      try {
+        // Create new session in backend
+        const session = await createChatSession();
+        // Fetch the full session list and messages
+        const [latestSessions, messages] = await Promise.all([
+          fetchChatHistory(),
+          fetchSessionMessages(session.session_id)
+        ]);
+        setSessions(latestSessions || []);
+        setActiveSession(session.session_id);
+        localStorage.setItem("activeSession", session.session_id);
+        setMessages((messages || []).map(m => ({ ...m, streaming: false })));
+      } catch (error) {
+        console.error("Error creating new chat:", error);
+      }
     } else {
-      setActiveSession("guest");
+      // Guest chat - create new session locally
+      const guestSessionId = "guest-" + Date.now();
+      setActiveSession(guestSessionId);
+      localStorage.setItem("activeSession", guestSessionId);
       setMessages([]);
+      localStorage.removeItem("guestChat");
     }
   };
 
   const handleSessionSelect = async (sessionId) => {
     setActiveSession(sessionId);
-    // Fetch messages from backend for this session
-    const messages = await fetchSessionMessages(sessionId);
-    setMessages(messages.map(m => ({ ...m, streaming: false })));
+    localStorage.setItem("activeSession", sessionId);
+    try {
+      // Fetch messages from backend for this session
+      const messages = await fetchSessionMessages(sessionId);
+      setMessages((messages || []).map(m => ({ ...m, streaming: false })));
+    } catch (error) {
+      console.error("Error loading session messages:", error);
+      setMessages([]);
+    }
   };
 
   // Handle adding messages from Voice Agent to main chat
@@ -354,6 +409,8 @@ export default function App() {
     setShowModal(true);
     localStorage.removeItem("user");
     localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("activeSession");
     localStorage.removeItem("guestChat");
   };
 
