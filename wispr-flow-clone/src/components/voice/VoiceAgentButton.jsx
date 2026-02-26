@@ -590,6 +590,13 @@ export default function VoiceAgentButton({ onResponseReceived }) {
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
+        .modal-shadow {
+          box-shadow: 
+            0 0 60px rgba(59, 130, 246, 0.4),
+            0 0 30px rgba(147, 51, 234, 0.3),
+            0 0 120px rgba(59, 130, 246, 0.15),
+            0 10px 40px rgba(0, 0, 0, 0.2);
+        }
       `}</style>
 
       {/* Voice Agent Button - Premium Design */}
@@ -621,18 +628,18 @@ export default function VoiceAgentButton({ onResponseReceived }) {
       {/* Modal - Premium Glassmorphism Design - Floating Dialog */}
       {showModal && (
         <div 
-          className="fixed inset-0 flex items-center justify-center p-1 sm:p-6 pointer-events-none z-[999999]"
+          className="fixed inset-0 flex items-start justify-center pt-4 sm:pt-8 px-3 sm:px-6 pointer-events-none z-[999999] bg-gradient-to-b from-blue-900/20 to-transparent backdrop-blur-sm"
           onClick={(e) => e.target === e.currentTarget && closeModal()}
         >
-          <div className="glass-panel rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90dvh] flex flex-col overflow-hidden modal-enter border border-purple-500/30 animate-slide-in pointer-events-auto bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl">
+          <div className="glass-panel rounded-3xl shadow-2xl w-full max-w-2xl max-h-[70vh] flex flex-col overflow-hidden modal-enter border border-blue-400/30 animate-slide-in pointer-events-auto bg-white/96 dark:bg-gray-900/96 backdrop-blur-3xl modal-shadow">
             
             {/* Header - Premium Design */}
-            <div className="relative flex items-center justify-between p-6 border-b border-white/20 bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 overflow-hidden shadow-2xl shrink-0">
+            <div className="relative flex items-center justify-between p-6 border-b border-white/20 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-500 overflow-hidden shadow-2xl shrink-0">
               {/* Animated background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-400/30 to-pink-400/30 animate-pulse"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-400/30 to-purple-400/30 animate-pulse"></div>
               <div className="absolute inset-0 opacity-20">
                 <div className="absolute top-0 left-0 w-40 h-40 bg-white/30 rounded-full blur-3xl animate-float"></div>
-                <div className="absolute bottom-0 right-0 w-32 h-32 bg-pink-300/30 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}}></div>
+                <div className="absolute bottom-0 right-0 w-32 h-32 bg-blue-300/30 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}}></div>
               </div>
               
               <div className="relative z-10">
