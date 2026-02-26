@@ -3,6 +3,9 @@ import { Plus, MessageSquare, Clock, LogOut, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 
+export default function Sidebar({ sessions, activeSession, onSelect, onNewChat, user, authenticated, onLogout, open, onClose }) {
+  const [activeTab, setActiveTab] = useState("history");
+
   return (
     <motion.div
       className={`fixed md:static top-0 left-0 z-50 md:z-auto h-full w-72 sm:w-80 bg-gradient-to-b from-slate-950/90 via-slate-950/80 to-blue-950/30 border-r border-white/10 flex flex-col backdrop-blur-2xl transition-transform duration-300 shadow-2xl ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
