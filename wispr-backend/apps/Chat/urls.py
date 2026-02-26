@@ -11,6 +11,16 @@ from .views import (
     RateVoiceAgentResponseView,
     TrainingDataStatsView
 )
+from .premium_views import (
+    SubscriptionStatusView,
+    CreateCheckoutSessionView,
+    CancelSubscriptionView,
+    UpdatePaymentMethodView,
+    StartTrialView,
+    ModelSelectionView,
+    VoiceToneView,
+    stripe_webhook,
+)
 
 urlpatterns = [
     path("ask/", ask_ai, name="ask"),
@@ -26,4 +36,18 @@ urlpatterns = [
     # Training endpoints for model improvement
     path("rate/<int:training_data_id>/", RateVoiceAgentResponseView.as_view(), name="rate_response"),
     path("training-stats/", TrainingDataStatsView.as_view(), name="training_stats"),
+    
+    # Premium/Monetization endpoints
+    path("subscription/status/", SubscriptionStatusView.as_view(), name="subscription_status"),
+    path("subscription/checkout/", CreateCheckoutSessionView.as_view(), name="create_checkout"),
+    path("subscription/cancel/", CancelSubscriptionView.as_view(), name="cancel_subscription"),
+    path("subscription/payment-method/", UpdatePaymentMethodView.as_view(), name="update_payment"),
+    path("subscription/trial/", StartTrialView.as_view(), name="start_trial"),
+    
+    # Model and Voice Tone selection
+    path("models/", ModelSelectionView.as_view(), name="model_selection"),
+    path("voice-tone/", VoiceToneView.as_view(), name="voice_tone"),
+    
+    # Stripe webhook
+    path("stripe/webhook/", stripe_webhook, name="stripe_webhook"),
 ]
