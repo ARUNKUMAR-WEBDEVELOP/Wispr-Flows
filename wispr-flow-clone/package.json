@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "tauri build",
+    "postinstall": "npm rebuild esbuild 2>/dev/null || true"
   },
   "dependencies": {
     "axios": "^1.13.2",

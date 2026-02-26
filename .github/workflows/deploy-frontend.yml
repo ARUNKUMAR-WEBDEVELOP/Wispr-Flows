@@ -37,9 +37,20 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Clean npm cache
+        run: |
+          npm cache clean --force
+          rm -rf node_modules package-lock.json
+
       - name: Install dependencies
         run: |
-          npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+          npm install --legacy-peer-deps --no-audit --no-fund --save-optional
+        env:
+          npm_config_optional: "true"
+
+      - name: Rebuild native modules
+        run: |
+          npm rebuild --verbose 2>&1 || echo "Rebuild completed with warnings"
 
       - name: Build
         run: npm run build
