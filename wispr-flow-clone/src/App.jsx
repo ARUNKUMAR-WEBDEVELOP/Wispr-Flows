@@ -30,6 +30,7 @@ export default function App() {
   const [aiStreaming, setAiStreaming] = useState(false);
   const [listening, setListening] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState("");
+  const [isVoiceAgentActive, setIsVoiceAgentActive] = useState(false);
   const finalTranscriptRef = useRef("");
   const interimTranscriptRef = useRef("");
 
@@ -297,6 +298,22 @@ export default function App() {
     setMessages(messages.map(m => ({ ...m, streaming: false })));
   };
 
+  // Handle adding messages from Voice Agent to main chat
+  const handleAddMessage = (message) => {
+    setMessages((prev) => {
+      const newMessage = {
+        role: message.from === "user" ? "user" : message.from === "agent" ? "assistant" : "error",
+        content: message.text,
+        streaming: false,
+        isVoiceAgent: message.isVoiceAgent || false,
+        timestamp: message.timestamp
+      };
+      const updated = [...prev, newMessage];
+      if (!authenticated) localStorage.setItem("guestChat", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   // Handle manual chat submit
   const handleSendText = async () => {
     if (!inputText) return;
@@ -429,6 +446,20 @@ export default function App() {
         {/* Chat window */}
         <ChatWindow messages={messages} isTyping={aiStreaming} liveTranscript={listening ? liveTranscript : null} />
 
+        {/* Voice Agent Settings Panel */}
+        {isVoiceAgentActive && (
+          <div className="relative p-4 sm:p-6 border-t border-blue-400/30 bg-gradient-to-br from-blue-900/20 via-cyan-900/20 to-blue-900/20 backdrop-blur-xl">
+            <div className="max-w-4xl mx-auto">
+              <VoiceAgentButton
+                onAddMessage={handleAddMessage}
+                messages={messages}
+                isVoiceAgentActive={isVoiceAgentActive}
+                onToggleVoiceAgent={() => setIsVoiceAgentActive(!isVoiceAgentActive)}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Premium Input Area with Gradient Background */}
         <div className="relative p-4 sm:p-6 border-t border-purple-500/30 bg-gradient-to-br from-gray-900/95 via-purple-900/30 to-pink-900/20 backdrop-blur-xl shadow-2xl">
           {/* Animated gradient overlay */}
@@ -445,11 +476,23 @@ export default function App() {
                   onStart={handleStartVoice}
                   onStop={handleStopVoice}
                 />
-                <VoiceAgentButton
-                  onResponseReceived={(response) => {
-                    setMessages((prev) => [...prev, { role: "assistant", content: response, streaming: false }]);
-                  }}
-                />
+                {!isVoiceAgentActive && (
+                  <button
+                    onClick={() => setIsVoiceAgentActive(true)}
+                    className="group relative flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 text-white hover:shadow-2xl hover:shadow-blue-500/50 active:scale-95 overflow-hidden shadow-lg"
+                    title="Enable Voice Agent"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl"></div>
+                    <svg className="w-5 h-5 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4" />
+                    </svg>
+                    <span className="relative z-10 text-sm">Voice Agent</span>
+                    <span className="absolute top-0 right-0 flex h-2.5 w-2.5 z-20">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500 shadow-lg shadow-green-500/50"></span>
+                    </span>
+                  </button>
+                )}
               </div>
               
               {/* Enhanced Input Field with Glassmorphism */}
