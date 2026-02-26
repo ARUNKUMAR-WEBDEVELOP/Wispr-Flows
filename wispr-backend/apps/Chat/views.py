@@ -165,14 +165,16 @@ def voice_agent_response(request):
             if session_id:
                 try:
                     session = ChatSession.objects.get(
-                        id=session_id, 
+                        id=session_id,
                         user=request.user,
                         is_voice_agent=True
                     )
                 except ChatSession.DoesNotExist:
-                    return Response(
-                        {"error": "Session not found"},
-                        status=404
+                    # Session id may be stale or from another device; start a new session
+                    session = ChatSession.objects.create(
+                        user=request.user,
+                        title=f"Voice Chat - {message[:50]}",
+                        is_voice_agent=True
                     )
             else:
                 # Create new voice agent session

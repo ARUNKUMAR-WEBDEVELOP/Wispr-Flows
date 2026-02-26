@@ -97,6 +97,11 @@ export default function VoiceAgentButton({
     setTranscript(finalTranscriptRef.current);
   }, { path: "voice-agent", maxReconnectAttempts: 3, reconnectDelay: 2000 });
 
+  const clearVoiceSession = () => {
+    setVoiceSessionId(null);
+    localStorage.removeItem("voiceSessionId");
+  };
+
   const handleSendVoiceToAgent = async (customText = null) => {
     const textToSend = customText || finalTranscriptRef.current;
     
@@ -117,11 +122,26 @@ export default function VoiceAgentButton({
       }
 
       // Get agent response with session tracking
-      const response = await getVoiceAgentResponse(textToSend, {
-        sessionId: voiceSessionId,
-        confidence: confidenceScore,
-        isVoiceInput: true
-      });
+      let response;
+      try {
+        response = await getVoiceAgentResponse(textToSend, {
+          sessionId: voiceSessionId,
+          confidence: confidenceScore,
+          isVoiceInput: true
+        });
+      } catch (err) {
+        const message = err?.message || "";
+        if (message.toLowerCase().includes("session not found")) {
+          clearVoiceSession();
+          response = await getVoiceAgentResponse(textToSend, {
+            sessionId: null,
+            confidence: confidenceScore,
+            isVoiceInput: true
+          });
+        } else {
+          throw err;
+        }
+      }
       
       // Store session ID for future messages
       if (response.session_id && !voiceSessionId) {
@@ -404,6 +424,9 @@ export default function VoiceAgentButton({
 
         {/* Transcript - Minimal Display */}
         <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide space-y-1">
+          <div className="px-1.5 py-1 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded text-[9px] text-blue-700 dark:text-blue-300">
+            Voice service is waking up... this can take a few seconds. If you see a connection warning, please wait and tap Listen again. Once connected, it will work normally.
+          </div>
           {transcript && (
             <div className="p-1.5 bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded text-[9px]">
               <p className="font-semibold text-green-700 dark:text-green-300">✓ {transcript}</p>
