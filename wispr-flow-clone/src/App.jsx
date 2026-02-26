@@ -448,8 +448,8 @@ export default function App() {
 
         {/* Voice Agent Settings Panel */}
         {isVoiceAgentActive && (
-          <div className="relative flex-shrink-0 p-4 sm:p-6 border-t border-blue-400/30 bg-gradient-to-br from-blue-900/20 via-cyan-900/20 to-blue-900/20 backdrop-blur-xl overflow-hidden max-h-[45vh]">
-            <div className="max-w-4xl mx-auto h-full overflow-hidden">
+          <div className="relative flex-shrink-0 p-3 sm:p-4 border-t border-blue-400/30 bg-gradient-to-br from-blue-900/20 via-cyan-900/20 to-blue-900/20 backdrop-blur-xl overflow-hidden">
+            <div className="max-w-4xl mx-auto">
               <VoiceAgentButton
                 onAddMessage={handleAddMessage}
                 messages={messages}

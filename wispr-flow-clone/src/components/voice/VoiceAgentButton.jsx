@@ -273,7 +273,7 @@ export default function VoiceAgentButton({
   }
 
   return (
-    <div className="w-full animate-in fade-in overflow-hidden flex flex-col max-h-[45vh]">
+    <div className="w-full animate-in fade-in overflow-hidden flex flex-col">
       <style>{`
         @keyframes wave {
           0%, 60%, 100% { transform: scaleY(0.5); }
@@ -295,121 +295,112 @@ export default function VoiceAgentButton({
         }
       `}</style>
 
-      {/* Voice Agent Settings */}
-      <div className="bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-50 dark:from-blue-900/20 dark:via-cyan-900/20 dark:to-blue-900/20 rounded-xl p-3 border border-blue-200 dark:border-blue-700/30 space-y-2 overflow-hidden flex flex-col flex-1">
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-sm text-gray-900 dark:text-white flex items-center gap-2">
+      {/* Voice Agent Settings - Horizontal Compact Layout */}
+      <div className="bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-50 dark:from-blue-900/20 dark:via-cyan-900/20 dark:to-blue-900/20 rounded-xl p-2 border border-blue-200 dark:border-blue-700/30 space-y-2 overflow-hidden flex flex-col">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between gap-2 flex-shrink-0">
+          <h3 className="font-semibold text-xs text-gray-900 dark:text-white flex items-center gap-1">
             <Mic className="w-3 h-3 text-blue-600" />
             Voice Agent
           </h3>
           <button
             onClick={onToggleVoiceAgent}
-            className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+            className="p-0.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
           >
             <X className="w-3 h-3 text-gray-600 dark:text-gray-400" />
           </button>
         </div>
 
-        {/* Settings Panel */}
-        <div className="space-y-2 overflow-y-auto flex-1 scrollbar-hide">
-          <div>
-            <label className="text-[11px] font-bold text-blue-700 dark:text-blue-300 mb-1 flex items-center gap-2 justify-between">
-              <span className="flex items-center gap-1">
-                <Volume2 className="w-3 h-3" />
-                Speed
-              </span>
-              <span className="bg-blue-600 text-white rounded px-1.5 py-0 text-[9px] font-mono">{voiceSpeed.toFixed(1)}x</span>
-            </label>
-            <div className="flex gap-1.5">
-              {[0.5, 1.0, 1.5, 2.0].map((speed) => (
-                <button
-                  key={speed}
-                  onClick={() => setVoiceSpeed(speed)}
-                  className={`flex-1 py-1.5 px-1 rounded-lg font-semibold text-[10px] transition-all duration-200 ${
-                    voiceSpeed === speed
-                      ? "bg-blue-600 text-white shadow-lg"
-                      : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50"
-                  }`}
-                >
-                  {speed}x
-                </button>
-              ))}
-            </div>
+        {/* Speed & Language - Horizontal Compact Row */}
+        <div className="flex gap-2 flex-shrink-0 flex-wrap sm:flex-nowrap items-center">
+          {/* Speed Buttons */}
+          <div className="flex gap-1 flex-shrink-0">
+            {[0.5, 1.0, 1.5, 2.0].map((speed) => (
+              <button
+                key={speed}
+                onClick={() => setVoiceSpeed(speed)}
+                title={`${speed}x speed`}
+                className={`py-1 px-1.5 rounded text-[9px] font-bold transition-all duration-200 flex-shrink-0 ${
+                  voiceSpeed === speed
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50"
+                }`}
+              >
+                {speed}x
+              </button>
+            ))}
           </div>
 
-          <div>
-            <label className="text-[11px] font-bold text-blue-700 dark:text-blue-300 mb-1 flex items-center gap-2">
-              <Languages className="w-3 h-3" />
-              Language
-            </label>
-            <select
-              value={selectedLanguage}
-              onChange={(e) => setSelectedLanguage(e.target.value)}
-              className="w-full px-2 py-1.5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-blue-200 dark:border-blue-700 rounded-lg text-xs font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-pointer"
-            >
-              <option value="en">English (US)</option>
-              <option value="en-GB">English (UK)</option>
-              <option value="es">Spanish</option>
-              <option value="fr">French</option>
-              <option value="de">German</option>
-              <option value="it">Italian</option>
-              <option value="pt">Portuguese</option>
-              <option value="ja">Japanese</option>
-              <option value="ko">Korean</option>
-              <option value="zh">Chinese</option>
-            </select>
-          </div>
+          {/* Language Selector */}
+          <select
+            value={selectedLanguage}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            className="px-2 py-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-blue-200 dark:border-blue-700 rounded text-[9px] font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-pointer flex-shrink-0 min-w-fit"
+          >
+            <option value="en">EN</option>
+            <option value="en-GB">EN-GB</option>
+            <option value="es">ES</option>
+            <option value="fr">FR</option>
+            <option value="de">DE</option>
+            <option value="it">IT</option>
+            <option value="pt">PT</option>
+            <option value="ja">JA</option>
+            <option value="ko">KO</option>
+            <option value="zh">ZH</option>
+          </select>
+
+          {/* Listen/Stop Button */}
+          <button
+            onClick={isListening ? handleStopListening : handleStartListening}
+            disabled={isProcessing}
+            title={isListening ? "Stop listening" : "Start listening"}
+            className={`py-1 px-2 rounded font-semibold transition-all duration-300 flex items-center gap-1 text-white text-[9px] flex-shrink-0 whitespace-nowrap ${
+              isListening
+                ? "bg-gradient-to-r from-red-600 to-red-500 hover:shadow-md hover:scale-105"
+                : "bg-gradient-to-r from-blue-600 to-cyan-500 hover:shadow-md hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            }`}
+          >
+            {isProcessing ? (
+              <>
+                <Loader className="w-3 h-3 animate-spin" />
+                <span className="hidden sm:inline">...</span>
+              </>
+            ) : (
+              <>
+                <Mic className="w-3 h-3" />
+                <span className="hidden sm:inline">{isListening ? "Stop" : "Listen"}</span>
+              </>
+            )}
+          </button>
         </div>
 
-        {/* Voice Control Button */}
-        <button
-          onClick={isListening ? handleStopListening : handleStartListening}
-          disabled={isProcessing}
-          className={`w-full py-2 px-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-white text-sm ${
-            isListening
-              ? "bg-gradient-to-r from-red-600 to-red-500 hover:shadow-lg hover:shadow-red-500/50 hover:scale-105"
-              : "bg-gradient-to-r from-blue-600 to-cyan-500 hover:shadow-lg hover:shadow-blue-500/50 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-          }`}
-        >
-          {isProcessing ? (
-            <>
-              <Loader className="w-4 h-4 animate-spin" />
-              <span className="text-xs">Processing...</span>
-            </>
-          ) : (
-            <>
-              <Mic className="w-4 h-4" />
-              <span className="text-xs">{isListening ? "Stop" : "Listen"}</span>
-            </>
+        {/* Transcript - Minimal Display */}
+        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide space-y-1">
+          {transcript && (
+            <div className="p-1.5 bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded text-[9px]">
+              <p className="font-semibold text-green-700 dark:text-green-300">✓ {transcript}</p>
+            </div>
           )}
-        </button>
 
-        {/* Transcript Display */}
-        {transcript && (
-          <div className="p-2 bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded-lg">
-            <p className="text-[10px] font-semibold text-green-700 dark:text-green-300 mb-0.5">TRANSCRIPT</p>
-            <p className="text-xs text-gray-700 dark:text-gray-300 line-clamp-2">{transcript}</p>
-          </div>
-        )}
+          {interimTranscript && !transcript && (
+            <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700 rounded text-[9px]">
+              <p className="font-semibold text-blue-700 dark:text-blue-300">🎤 {interimTranscript}</p>
+            </div>
+          )}
 
-        {interimTranscript && !transcript && (
-          <div className="p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700 rounded-lg">
-            <p className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 mb-0.5">LISTENING...</p>
-            <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{interimTranscript}</p>
-          </div>
-        )}
+          {isListening && (
+            <div className="p-1">
+              <AnimatedWaveform isActive={true} />
+            </div>
+          )}
 
-        {isListening && (
-          <div className="p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-            <AnimatedWaveform isActive={true} />
-          </div>
-        )}
-
-        {error && (
-          <div className="p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
-            <p className="text-xs text-red-600 dark:text-red-400">⚠️ {error}</p>
-          </div>
-        )}
+          {error && (
+            <div className="p-1.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded text-[9px]">
+              <p className="text-red-600 dark:text-red-400">⚠️ {error}</p>
+            </div>
+          )}
+        </div>
       </div>
 
       <audio ref={audioRef} />
