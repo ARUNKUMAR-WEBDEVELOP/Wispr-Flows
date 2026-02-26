@@ -36,22 +36,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Configure npm registry mirror
-        run: |
-          npm config set registry https://registry.npmmirror.com/
-          npm config set @types:registry https://registry.npmmirror.com/
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
 
       - name: Install dependencies
-        env:
-          NPM_CONFIG_OPTIONAL: "true"
         run: |
-          rm -rf node_modules package-lock.json
-          npm install --legacy-peer-deps --include=optional --no-audit --no-fund
+          npm ci --legacy-peer-deps || npm install --legacy-peer-deps
 
       - name: Build
         run: npm run build
@@ -60,6 +48,12 @@ jobs:
           VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_GOOGLE_CLIENT_SECRET: ${{ secrets.VITE_GOOGLE_CLIENT_SECRET }}
+
+      - name: Verify build output
+        run: |
+          echo "Build directory contents:"
+          ls -la dist/
+          echo "Build completed successfully"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -77,3 +71,5 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
