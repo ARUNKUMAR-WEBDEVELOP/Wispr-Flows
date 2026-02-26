@@ -38,6 +38,8 @@ export default function VoiceAgentButton({
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [error, setError] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [voiceSessionId, setVoiceSessionId] = useState(null);
+  const [confidenceScore, setConfidenceScore] = useState(0.95);
   
   const audioRef = useRef(null);
   const finalTranscriptRef = useRef("");
@@ -46,15 +48,28 @@ export default function VoiceAgentButton({
   const workletNodeRef = useRef(null);
   const streamRef = useRef(null);
 
+  // Initialize voice session ID on mount
+  useEffect(() => {
+    const savedSessionId = localStorage.getItem("voiceSessionId");
+    if (savedSessionId) {
+      setVoiceSessionId(savedSessionId);
+    }
+  }, []);
+
   // Deepgram WebSocket hook
   const ws = useVoiceWebSocket((data) => {
     if (!data) return;
 
     const payload = typeof data === "string"
-      ? { text: data, is_final: true, speech_final: true }
+      ? { text: data, is_final: true, speech_final: true, confidence: 0.95 }
       : data;
 
     if (!payload.text) return;
+
+    // Extract confidence score if available
+    if (payload.confidence !== undefined) {
+      setConfidenceScore(payload.confidence);
+    }
 
     const finalText = finalTranscriptRef.current.trim();
     let incoming = payload.text.trim();
@@ -96,20 +111,32 @@ export default function VoiceAgentButton({
         onAddMessage({
           text: textToSend,
           from: "user",
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          isVoiceInput: true
         });
       }
 
-      // Get agent response
-      const response = await getVoiceAgentResponse(textToSend);
+      // Get agent response with session tracking
+      const response = await getVoiceAgentResponse(textToSend, {
+        sessionId: voiceSessionId,
+        confidence: confidenceScore,
+        isVoiceInput: true
+      });
       
+      // Store session ID for future messages
+      if (response.session_id && !voiceSessionId) {
+        setVoiceSessionId(response.session_id);
+        localStorage.setItem("voiceSessionId", response.session_id);
+      }
+
       // Add agent response to main chat
       if (onAddMessage) {
         onAddMessage({
           text: response.text,
           from: "agent",
           timestamp: new Date().toISOString(),
-          isVoiceAgent: true
+          isVoiceAgent: true,
+          trainingDataId: response.training_data_id // For rating later
         });
       }
 

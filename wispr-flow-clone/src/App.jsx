@@ -7,7 +7,7 @@ import VoiceButton from "./components/voice/VoiceButton";
 import VoiceAgentButton from "./components/voice/VoiceAgentButton";
 import ChatWindow from "./components/chat/ChatWindow";
 import GoogleLoginButton from "./components/Auth/GoogleLoginButton";
-import { fetchChatHistory, createChatSession, fetchSessionMessages, saveMessage } from "./services/history.service";
+import { fetchChatHistory, createChatSession, fetchSessionMessages } from "./services/history.service";
 import { sendMessageToAI } from "./services/ai.service";
 import { logout } from "./services/auth.service";
 import { motion, AnimatePresence } from "framer-motion";
@@ -364,17 +364,7 @@ export default function App() {
         timestamp: message.timestamp
       };
       const updated = [...prev, newMessage];
-      
-      // Save to localStorage for guest users
-      if (!authenticated) {
-        localStorage.setItem("guestChat", JSON.stringify(updated));
-      } else if (activeSession) {
-        // Save to database for authenticated users
-        saveMessage(activeSession, message.text, newMessage.role, {
-          isVoiceAgent: message.isVoiceAgent || false
-        }).catch(err => console.error("Error saving message:", err));
-      }
-      
+      if (!authenticated) localStorage.setItem("guestChat", JSON.stringify(updated));
       return updated;
     });
   };
@@ -383,48 +373,21 @@ export default function App() {
   const handleSendText = async () => {
     if (!inputText) return;
 
-    const userMessage = inputText;
-    setInputText("");
-
-    // Add user message to state
     setMessages((prev) => {
-      const updated = [...prev, { role: "user", content: userMessage, streaming: false }];
-      
-      // Save to localStorage for guests
-      if (!authenticated) {
-        localStorage.setItem("guestChat", JSON.stringify(updated));
-      } else if (activeSession) {
-        // Save to database for authenticated users
-        saveMessage(activeSession, userMessage, "user").catch(err => 
-          console.error("Error saving user message:", err)
-        );
-      }
-      
+      const updated = [...prev, { role: "user", content: inputText, streaming: false }];
+      if (!authenticated) localStorage.setItem("guestChat", JSON.stringify(updated));
       return updated;
     });
 
+    setInputText("");
     setAiStreaming(true);
 
     try {
-      const aiResponse = await sendMessageToAI(userMessage);
+      const aiResponse = await sendMessageToAI(inputText);
       setMessages((prev) => {
-        const updated = [...prev, { 
-          role: "assistant", 
-          content: aiResponse.text, 
-          streaming: false, 
-          language: aiResponse.language 
-        }];
-        
-        // Save to localStorage for guests
-        if (!authenticated) {
-          localStorage.setItem("guestChat", JSON.stringify(updated));
-        } else if (activeSession) {
-          // Save to database for authenticated users
-          saveMessage(activeSession, aiResponse.text, "assistant", {
-            language: aiResponse.language
-          }).catch(err => console.error("Error saving assistant message:", err));
-        }
-        
+        const updated = [...prev, { role: "assistant", content: aiResponse.text, streaming: false, language: aiResponse.language }];
+        if (!authenticated) localStorage.setItem("guestChat", JSON.stringify(updated));
+        // Do not auto-speak; use MessageActions for manual TTS controls
         return updated;
       });
     } catch (err) {
@@ -452,12 +415,12 @@ export default function App() {
   };
 
   return (
-    <div className="relative min-h-[100dvh] bg-[#07080f] text-white overflow-x-hidden">
+    <div className="relative h-[100dvh] bg-[#07080f] text-white overflow-hidden">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-32 -left-20 h-96 w-96 rounded-full bg-purple-600/20 blur-[120px]"></div>
         <div className="absolute -bottom-32 right-0 h-[28rem] w-[28rem] rounded-full bg-pink-500/15 blur-[140px]"></div>
       </div>
-      <div className="relative z-10 flex min-h-[100dvh]">
+      <div className="relative z-10 flex h-[100dvh] overflow-hidden">
       {/* Sidebar for desktop, drawer for mobile/tablet */}
       {/* Hamburger menu for mobile/tablet */}
       <button
