@@ -360,18 +360,18 @@ export default function App() {
   return (
     <div className="relative min-h-[100dvh] bg-[#07080f] text-white overflow-x-hidden">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-32 -left-20 h-96 w-96 rounded-full bg-purple-600/20 blur-[120px]"></div>
-        <div className="absolute -bottom-32 right-0 h-[28rem] w-[28rem] rounded-full bg-pink-500/15 blur-[140px]"></div>
+        <div className="absolute -top-32 -left-20 h-96 w-96 rounded-full bg-blue-600/20 blur-[120px]"></div>
+        <div className="absolute -bottom-32 right-0 h-[28rem] w-[28rem] rounded-full bg-cyan-500/15 blur-[140px]"></div>
       </div>
       <div className="relative z-10 flex min-h-[100dvh]">
       {/* Sidebar for desktop, drawer for mobile/tablet */}
       {/* Hamburger menu for mobile/tablet */}
       <button
-        className="md:hidden fixed top-4 left-4 z-50 bg-gradient-to-br from-purple-600 to-purple-500 p-3 rounded-xl shadow-2xl shadow-purple-500/50 hover:scale-110 active:scale-95 transition-all duration-300 backdrop-blur-sm"
+        className="md:hidden fixed top-3 left-3 z-50 bg-gradient-to-br from-blue-600 to-cyan-500 p-2.5 rounded-lg shadow-2xl shadow-blue-500/50 hover:scale-110 active:scale-95 transition-all duration-300 backdrop-blur-sm"
         onClick={() => setSidebarOpen(true)}
         aria-label="Open sidebar"
       >
-        <Menu size={24} className="text-white" />
+        <Menu size={20} className="text-white" />
       </button>
       {/* Sidebar: show as drawer on mobile/tablet, static on desktop */}
       <div>
@@ -390,7 +390,7 @@ export default function App() {
       {/* Overlay for mobile sidebar */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-gradient-to-br from-purple-900/40 via-black/60 to-pink-900/40 backdrop-blur-sm z-40 md:hidden animate-in"
+          className="fixed inset-0 bg-gradient-to-br from-blue-900/40 via-black/60 to-cyan-900/40 backdrop-blur-sm z-40 md:hidden animate-in"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -406,28 +406,28 @@ export default function App() {
               exit={{ opacity: 0 }}
             >
               <motion.div
-                className="bg-gradient-to-br from-white via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20 text-gray-900 dark:text-white rounded-3xl p-8 shadow-2xl w-full max-w-md border-2 border-purple-200/50 dark:border-purple-500/30 backdrop-blur-xl"
-                initial={{ scale: 0.8, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.8, y: 20 }}
-              >
-                <div className="text-center mb-6">
-                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-purple-500/50 float-animation">
+              className="bg-gradient-to-br from-white via-blue-50 to-cyan-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-cyan-900/20 text-gray-900 dark:text-white rounded-3xl p-8 shadow-2xl w-full max-w-md border-2 border-blue-200/50 dark:border-blue-500/30 backdrop-blur-xl"
+              initial={{ scale: 0.8, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, y: 20 }}
+            >
+              <div className="text-center mb-6">
+                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/50 float-animation">
                     <Sparkles className="w-8 h-8 text-white" />
                   </div>
-                  <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">Welcome to Wispr Flow</h2>
+                  <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent mb-2">Welcome to Wispr Flow</h2>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Your AI-powered voice assistant</p>
                 </div>
                 <div className="flex flex-col gap-3">
                   <button
-                    className="group relative px-6 py-3 bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:shadow-xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-[1.02] active:scale-95 overflow-hidden"
+                    className="group relative px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-xl font-semibold hover:shadow-xl hover:shadow-blue-500/50 transition-all duration-300 hover:scale-[1.02] active:scale-95 overflow-hidden"
                     onClick={() => setLoginStep("login")}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
                     <span className="relative z-10">Login with Google</span>
                   </button>
                   <button
-                    className="px-6 py-3 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-700 rounded-xl font-medium hover:bg-white/70 dark:hover:bg-gray-800/70 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 hover:scale-[1.02] active:scale-95"
+                    className="px-6 py-3 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-700 rounded-xl font-medium hover:bg-white/70 dark:hover:bg-gray-800/70 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 hover:scale-[1.02] active:scale-95"
                     onClick={handleSkip}
                   >
                     Continue Without Login
@@ -461,16 +461,16 @@ export default function App() {
         )}
 
         {/* Premium Input Area with Gradient Background */}
-        <div className="relative flex-shrink-0 p-4 sm:p-6 border-t border-purple-500/30 bg-gradient-to-br from-gray-900/95 via-purple-900/30 to-pink-900/20 backdrop-blur-xl shadow-2xl">
+        <div className="relative flex-shrink-0 p-3 sm:p-4 md:p-6 border-t border-blue-500/30 bg-gradient-to-br from-gray-900/95 via-blue-900/30 to-cyan-900/20 backdrop-blur-xl shadow-2xl">
           {/* Animated gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-purple-600/10 opacity-50"></div>
-          <div className="absolute top-0 left-1/4 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-float"></div>
-          <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-pink-500/20 rounded-full blur-3xl animate-float" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-cyan-600/10 to-blue-600/10 opacity-50"></div>
+          <div className="absolute top-0 left-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-cyan-500/20 rounded-full blur-3xl animate-float" style={{animationDelay: '1.5s'}}></div>
           
-          <div className="relative z-10 max-w-4xl mx-auto">
-            <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="relative z-10 max-w-5xl mx-auto w-full">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               {/* Voice Buttons with Premium Design */}
-              <div className="flex gap-3 w-full sm:w-auto">
+              <div className="flex gap-2 sm:gap-3 w-full sm:w-auto flex-shrink-0">
                 <VoiceButton
                   listening={listening}
                   onStart={handleStartVoice}
@@ -503,8 +503,8 @@ export default function App() {
                   value={listening ? liveTranscript : inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleSendText()}
-                  placeholder="✨ Type your message or use voice..."
-                  className="relative w-full px-5 py-3.5 text-base rounded-xl bg-white/10 backdrop-blur-md border-2 border-purple-500/30 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/30 text-white placeholder-gray-400 transition-all duration-300 shadow-lg hover:shadow-xl hover:bg-white/15"
+                  placeholder="✨ Type message or use voice..."
+                  className="relative w-full px-3 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl bg-white/10 backdrop-blur-md border-2 border-blue-500/30 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 text-white placeholder-gray-400 transition-all duration-300 shadow-lg hover:shadow-xl hover:bg-white/15"
                   disabled={listening}
                 />
                 {listening && (
@@ -522,9 +522,9 @@ export default function App() {
               <button
                 onClick={handleSendText}
                 disabled={aiStreaming || !inputText.trim()}
-                className="group relative px-6 py-3.5 text-base bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 hover:shadow-2xl hover:shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-bold text-white transition-all duration-300 hover:scale-105 active:scale-95 w-full sm:w-auto overflow-hidden shadow-lg"
+                className="group relative px-3 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-base bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 hover:shadow-2xl hover:shadow-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg sm:rounded-xl font-bold text-white transition-all duration-300 hover:scale-105 active:scale-95 w-full sm:w-auto flex-shrink-0 overflow-hidden shadow-lg"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl"></div>
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                 <span className="relative z-10 flex items-center justify-center gap-2">
                   {aiStreaming ? (
