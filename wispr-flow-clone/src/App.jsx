@@ -7,7 +7,7 @@ import VoiceButton from "./components/voice/VoiceButton";
 import VoiceAgentButton from "./components/voice/VoiceAgentButton";
 import ChatWindow from "./components/chat/ChatWindow";
 import GoogleLoginButton from "./components/Auth/GoogleLoginButton";
-import { fetchChatHistory, createChatSession, fetchSessionMessages } from "./services/history.service";
+import { fetchChatHistory, createChatSession, fetchSessionMessages, saveMessage } from "./services/history.service";
 import { sendMessageToAI } from "./services/ai.service";
 import { logout } from "./services/auth.service";
 import { motion, AnimatePresence } from "framer-motion";
@@ -364,7 +364,17 @@ export default function App() {
         timestamp: message.timestamp
       };
       const updated = [...prev, newMessage];
-      if (!authenticated) localStorage.setItem("guestChat", JSON.stringify(updated));
+      
+      // Save to localStorage for guest users
+      if (!authenticated) {
+        localStorage.setItem("guestChat", JSON.stringify(updated));
+      } else if (activeSession) {
+        // Save to database for authenticated users
+        saveMessage(activeSession, message.text, newMessage.role, {
+          isVoiceAgent: message.isVoiceAgent || false
+        }).catch(err => console.error("Error saving message:", err));
+      }
+      
       return updated;
     });
   };
@@ -373,21 +383,48 @@ export default function App() {
   const handleSendText = async () => {
     if (!inputText) return;
 
+    const userMessage = inputText;
+    setInputText("");
+
+    // Add user message to state
     setMessages((prev) => {
-      const updated = [...prev, { role: "user", content: inputText, streaming: false }];
-      if (!authenticated) localStorage.setItem("guestChat", JSON.stringify(updated));
+      const updated = [...prev, { role: "user", content: userMessage, streaming: false }];
+      
+      // Save to localStorage for guests
+      if (!authenticated) {
+        localStorage.setItem("guestChat", JSON.stringify(updated));
+      } else if (activeSession) {
+        // Save to database for authenticated users
+        saveMessage(activeSession, userMessage, "user").catch(err => 
+          console.error("Error saving user message:", err)
+        );
+      }
+      
       return updated;
     });
 
-    setInputText("");
     setAiStreaming(true);
 
     try {
-      const aiResponse = await sendMessageToAI(inputText);
+      const aiResponse = await sendMessageToAI(userMessage);
       setMessages((prev) => {
-        const updated = [...prev, { role: "assistant", content: aiResponse.text, streaming: false, language: aiResponse.language }];
-        if (!authenticated) localStorage.setItem("guestChat", JSON.stringify(updated));
-        // Do not auto-speak; use MessageActions for manual TTS controls
+        const updated = [...prev, { 
+          role: "assistant", 
+          content: aiResponse.text, 
+          streaming: false, 
+          language: aiResponse.language 
+        }];
+        
+        // Save to localStorage for guests
+        if (!authenticated) {
+          localStorage.setItem("guestChat", JSON.stringify(updated));
+        } else if (activeSession) {
+          // Save to database for authenticated users
+          saveMessage(activeSession, aiResponse.text, "assistant", {
+            language: aiResponse.language
+          }).catch(err => console.error("Error saving assistant message:", err));
+        }
+        
         return updated;
       });
     } catch (err) {
