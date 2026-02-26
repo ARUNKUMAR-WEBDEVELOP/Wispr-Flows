@@ -428,7 +428,7 @@ export default function VoiceAgentButton({
             Voice service is waking up... this can take a few seconds. If you see a connection warning, please wait and tap Listen again. Once connected, it will work normally.
           </div>
           {transcript && (
-            <div className="p-1.5 bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded text-[9px]">
+            <div className="p-1.5 bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-600 rounded text-[9px]">
               <p className="font-semibold text-green-700 dark:text-green-300">✓ {transcript}</p>
             </div>
           )}

@@ -12,6 +12,7 @@ import logging
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.utils import timezone
+from django.conf import settings
 
 from .models import (
     ChatSession,
