@@ -621,7 +621,7 @@ export default function VoiceAgentButton({ onResponseReceived }) {
       {/* Modal - Premium Glassmorphism Design - Centered */}
       {showModal && (
         <div 
-          className="fixed inset-0 bg-gradient-to-br from-purple-900/50 via-black/70 to-pink-900/50 backdrop-blur-xl z-[9999] animate-in flex items-center justify-center p-4 sm:p-6"
+          className="fixed inset-0 bg-gradient-to-br from-purple-900/50 via-black/70 to-pink-900/50 backdrop-blur-xl z-[999999] animate-in flex items-center justify-center p-1 sm:p-6"
           onClick={(e) => e.target === e.currentTarget && closeModal()}
         >
           <div className="glass-panel rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90dvh] flex flex-col overflow-hidden modal-enter border border-purple-500/30 animate-slide-in">
