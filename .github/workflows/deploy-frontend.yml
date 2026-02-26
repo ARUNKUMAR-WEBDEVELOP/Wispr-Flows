@@ -36,11 +36,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
-          cache-dependency-path: "wispr-flow-clone/package-lock.json"
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: wispr-flow-clone/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('wispr-flow-clone/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
         env:
           CI: true
 
