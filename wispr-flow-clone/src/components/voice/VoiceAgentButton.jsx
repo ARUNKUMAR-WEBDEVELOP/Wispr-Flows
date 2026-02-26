@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Mic, X, Loader, Volume2, Languages } from "lucide-react";
 import { getVoiceAgentResponse } from "../../services/voice-agent.service";
 import { textToSpeech } from "../../services/tts.service";
@@ -11,12 +11,12 @@ function AnimatedWaveform({ isActive = false }) {
       {[...Array(5)].map((_, i) => (
         <div
           key={i}
-          className={w-1 bg-gradient-to-t from-blue-400 to-blue-600 rounded-full transition-all d:\viveturst-master\turies\wispr-flow-clone\src\components\voice{
+          className={`w-1 bg-gradient-to-t from-blue-400 to-blue-600 rounded-full transition-all ${
             isActive ? "shadow-lg shadow-blue-400" : ""
-          }}
+          }`}
           style={{
             height: isActive ? Math.random() * 32 + 12 + "px" : "8px",
-            animation: isActive ? wave 600ms ease-in-out infinite : "none",
+            animation: isActive ? `wave 600ms ease-in-out infinite` : "none",
             animationDelay: i * 100 + "ms"
           }}
         />
@@ -65,7 +65,7 @@ export default function VoiceAgentButton({
 
     if (payload.is_final || payload.speech_final) {
       if (incoming) {
-        finalTranscriptRef.current = finalText ? $ d:\viveturst-master\turies\wispr-flow-clone\src\components\voice{incoming} : incoming;
+        finalTranscriptRef.current = finalText ? `${finalText} ${incoming}` : incoming;
       }
       interimTranscriptRef.current = "";
       setInterimTranscript("");
@@ -134,7 +134,7 @@ export default function VoiceAgentButton({
       setError(error.message);
       if (onAddMessage) {
         onAddMessage({
-          text: " " + error.message,
+          text: "⚠️ " + error.message,
           from: "error",
           timestamp: new Date().toISOString()
         });
@@ -274,7 +274,7 @@ export default function VoiceAgentButton({
 
   return (
     <div className="w-full space-y-4 animate-in fade-in">
-      <style>{
+      <style>{`
         @keyframes wave {
           0%, 60%, 100% { transform: scaleY(0.5); }
           30% { transform: scaleY(1); }
@@ -286,7 +286,7 @@ export default function VoiceAgentButton({
         .animate-in {
           animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-      }</style>
+      `}</style>
 
       {/* Voice Agent Settings */}
       <div className="bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-50 dark:from-blue-900/20 dark:via-cyan-900/20 dark:to-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700/30 space-y-3">
@@ -322,7 +322,7 @@ export default function VoiceAgentButton({
               onChange={(e) => setVoiceSpeed(parseFloat(e.target.value))}
               className="w-full h-2 bg-blue-200 dark:bg-blue-900 rounded-full appearance-none cursor-pointer"
               style={{
-                background: linear-gradient(to right, rgb(37, 99, 235) 0%, rgb(37, 99, 235) d:\viveturst-master\turies\wispr-flow-clone\src\components\voice{(voiceSpeed - 0.5) / 1.5 * 100}%, rgb(226, 232, 240) d:\viveturst-master\turies\wispr-flow-clone\src\components\voice{(voiceSpeed - 0.5) / 1.5 * 100}%, rgb(226, 232, 240) 100%)
+                background: `linear-gradient(to right, rgb(37, 99, 235) 0%, rgb(37, 99, 235) ${(voiceSpeed - 0.5) / 1.5 * 100}%, rgb(226, 232, 240) ${(voiceSpeed - 0.5) / 1.5 * 100}%, rgb(226, 232, 240) 100%)`
               }}
             />
           </div>
@@ -355,11 +355,11 @@ export default function VoiceAgentButton({
         <button
           onClick={isListening ? handleStopListening : handleStartListening}
           disabled={isProcessing}
-          className={w-full py-3 px-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-white d:\viveturst-master\turies\wispr-flow-clone\src\components\voice{
+          className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-white ${
             isListening
               ? "bg-gradient-to-r from-red-600 to-red-500 hover:shadow-lg hover:shadow-red-500/50 hover:scale-105"
               : "bg-gradient-to-r from-blue-600 to-cyan-500 hover:shadow-lg hover:shadow-blue-500/50 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-          }}
+          }`}
         >
           {isProcessing ? (
             <>
@@ -397,7 +397,7 @@ export default function VoiceAgentButton({
 
         {error && (
           <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
-            <p className="text-sm text-red-600 dark:text-red-400"> {error}</p>
+            <p className="text-sm text-red-600 dark:text-red-400">⚠️ {error}</p>
           </div>
         )}
       </div>
@@ -406,3 +406,4 @@ export default function VoiceAgentButton({
     </div>
   );
 }
+
